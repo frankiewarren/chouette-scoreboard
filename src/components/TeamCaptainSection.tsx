@@ -8,7 +8,7 @@ interface Player {
   sittingOut: boolean;
 }
 
-interface CaptainSectionProps {
+interface TeamCaptainSectionProps {
   className?: string;
   gameMode?: GameMode;
   player?: Player | null;
@@ -16,14 +16,14 @@ interface CaptainSectionProps {
   onToggleSittingOut?: () => void;
 }
 
-export const CaptainSection = ({ 
+export const TeamCaptainSection = ({ 
   className = "", 
   gameMode = 'setup', 
   player, 
   onPlayerAdd, 
   onToggleSittingOut 
-}: CaptainSectionProps) => {
-  const [captainPlayer, setCaptainPlayer] = useState<string>("");
+}: TeamCaptainSectionProps) => {
+  const [teamCaptainPlayer, setTeamCaptainPlayer] = useState<string>("");
   const [isEditing, setIsEditing] = useState(false);
   const [tempName, setTempName] = useState("");
 
@@ -34,7 +34,7 @@ export const CaptainSection = ({
 
   const handleSavePlayer = () => {
     if (tempName.trim()) {
-      setCaptainPlayer(tempName.trim());
+      setTeamCaptainPlayer(tempName.trim());
       onPlayerAdd?.(tempName.trim());
       setIsEditing(false);
       setTempName("");
@@ -59,7 +59,7 @@ export const CaptainSection = ({
     return (
       <div className={`bg-white rounded-lg shadow-lg p-6 h-full flex flex-col justify-center ${className}`}>
         <div className="text-center">
-          <h2 className="text-lg font-semibold text-gray-600 mb-4">CAPTAIN</h2>
+          <h2 className="text-sm font-medium text-gray-400 mb-3">TEAM CAPTAIN</h2>
           
           <div 
             onClick={onToggleSittingOut}
@@ -87,9 +87,9 @@ export const CaptainSection = ({
   return (
     <div className={`bg-white rounded-lg shadow-lg p-6 h-full flex flex-col justify-center ${className}`}>
       <div className="text-center">
-        <h2 className="text-lg font-semibold text-gray-600 mb-4">CAPTAIN</h2>
+        <h2 className="text-sm font-medium text-gray-400 mb-3">TEAM CAPTAIN</h2>
         
-        {!captainPlayer && !isEditing ? (
+        {!teamCaptainPlayer && !isEditing ? (
           <button
             onClick={handleAddPlayer}
             className="w-full border-2 border-dashed border-gray-300 rounded-lg p-8 text-gray-500 hover:border-green-400 hover:text-green-600 hover:bg-green-50 transition-colors text-xl font-medium touch-manipulation"
@@ -127,7 +127,7 @@ export const CaptainSection = ({
             onClick={() => setIsEditing(true)}
             className="w-full bg-green-600 text-white rounded-lg p-8 text-2xl font-bold cursor-pointer hover:bg-green-700 transition-colors touch-manipulation"
           >
-            {captainPlayer}
+            {teamCaptainPlayer}
           </div>
         )}
       </div>

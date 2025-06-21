@@ -30,8 +30,8 @@ class SessionService {
       gameMode: 'setup',
       isComplete: false,
       boxPlayerId: null,
-      captainPlayerId: null,
-      queuePlayerIds: [],
+      teamCaptainPlayerId: null,
+      teamPlayerIds: [],
       currentChouetteScores: {},
       playersSittingOut: {}
     };
@@ -44,22 +44,22 @@ class SessionService {
     this.saveSession(session);
   }
 
-  startGame(session: GameSession, boxPlayerId: string, captainPlayerId: string, queuePlayerIds: string[] = []): GameSession {
+  startGame(session: GameSession, boxPlayerId: string, teamCaptainPlayerId: string, teamPlayerIds: string[] = []): GameSession {
     const updatedSession: GameSession = {
       ...session,
       gameMode: 'game',
       boxPlayerId,
-      captainPlayerId,
-      queuePlayerIds,
+      teamCaptainPlayerId,
+      teamPlayerIds,
       currentChouetteScores: {
         [boxPlayerId]: 0,
-        [captainPlayerId]: 0,
-        ...queuePlayerIds.reduce((acc, id) => ({ ...acc, [id]: 0 }), {})
+        [teamCaptainPlayerId]: 0,
+        ...teamPlayerIds.reduce((acc, id) => ({ ...acc, [id]: 0 }), {})
       },
       playersSittingOut: {
         [boxPlayerId]: false,
-        [captainPlayerId]: false,
-        ...queuePlayerIds.reduce((acc, id) => ({ ...acc, [id]: false }), {})
+        [teamCaptainPlayerId]: false,
+        ...teamPlayerIds.reduce((acc, id) => ({ ...acc, [id]: false }), {})
       }
     };
 
@@ -85,12 +85,12 @@ class SessionService {
     return updatedSession;
   }
 
-  updatePlayerPositions(session: GameSession, newBoxPlayerId: string, newCaptainPlayerId: string, newQueuePlayerIds: string[]): GameSession {
+  updatePlayerPositions(session: GameSession, newBoxPlayerId: string, newTeamCaptainPlayerId: string, newTeamPlayerIds: string[]): GameSession {
     const updatedSession: GameSession = {
       ...session,
       boxPlayerId: newBoxPlayerId,
-      captainPlayerId: newCaptainPlayerId,
-      queuePlayerIds: newQueuePlayerIds
+      teamCaptainPlayerId: newTeamCaptainPlayerId,
+      teamPlayerIds: newTeamPlayerIds
     };
 
     this.saveSession(updatedSession);

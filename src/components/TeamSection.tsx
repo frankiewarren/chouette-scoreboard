@@ -1,37 +1,37 @@
 import { useState } from 'react';
-import type { Player, QueuePlayerData } from '../types';
+import type { Player, TeamPlayerData } from '../types';
 import { PlayerSelector } from './PlayerSelector';
 
 type GameMode = 'setup' | 'game';
 
-interface QueueSectionProps {
+interface TeamSectionProps {
   className?: string;
   gameMode?: GameMode;
-  queuePlayers?: Array<{
+  teamPlayers?: Array<{
     id: number;
     name: string;
     score: number;
     sittingOut: boolean;
   }>;
-  onQueuePlayersChange?: (players: QueuePlayerData[]) => void;
+  onTeamPlayersChange?: (players: TeamPlayerData[]) => void;
   players?: Player[];
   onPlayersChanged?: () => void;
 }
 
-export const QueueSection = ({ 
+export const TeamSection = ({ 
   className = "", 
   gameMode = 'setup',
-  queuePlayers = [],
-  onQueuePlayersChange,
+  teamPlayers = [],
+  onTeamPlayersChange,
   players = [],
   onPlayersChanged
-}: QueueSectionProps) => {
+}: TeamSectionProps) => {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
-  const maxQueuePositions = 12;
+  const maxTeamPositions = 12;
 
-  const updateQueuePlayers = (newPlayers: QueuePlayerData[]) => {
-    onQueuePlayersChange?.(newPlayers);
+  const updateTeamPlayers = (newPlayers: TeamPlayerData[]) => {
+    onTeamPlayersChange?.(newPlayers);
   };
 
   const handleAddPlayer = (index: number) => {
@@ -42,46 +42,46 @@ export const QueueSection = ({
 
   const handlePlayerSelect = (playerId: string) => {
     if (editingIndex !== null && playerId) {
-      const newQueueData: QueuePlayerData = {
+      const newTeamData: TeamPlayerData = {
         id: editingIndex + 1,
         playerId,
         sittingOut: false
       };
       
-      const currentQueueData: QueuePlayerData[] = queuePlayers.map(qp => {
-        const player = players.find(p => p.name === qp.name);
+      const currentTeamData: TeamPlayerData[] = teamPlayers.map(tp => {
+        const player = players.find(p => p.name === tp.name);
         return {
-          id: qp.id,
+          id: tp.id,
           playerId: player?.id || '',
-          sittingOut: qp.sittingOut
+          sittingOut: tp.sittingOut
         };
       });
       
-      const existingIndex = currentQueueData.findIndex(q => q.id === editingIndex + 1);
+      const existingIndex = currentTeamData.findIndex(q => q.id === editingIndex + 1);
       
       if (existingIndex >= 0) {
-        currentQueueData[existingIndex] = newQueueData;
+        currentTeamData[existingIndex] = newTeamData;
       } else {
-        currentQueueData.push(newQueueData);
-        currentQueueData.sort((a, b) => a.id - b.id);
+        currentTeamData.push(newTeamData);
+        currentTeamData.sort((a, b) => a.id - b.id);
       }
       
-      updateQueuePlayers(currentQueueData);
+      updateTeamPlayers(currentTeamData);
       setEditingIndex(null);
     }
   };
 
-  const toggleQueuePlayerSittingOut = (playerId: number) => {
+  const toggleTeamPlayerSittingOut = (playerId: number) => {
     if (gameMode === 'game') {
-      const currentQueueData: QueuePlayerData[] = queuePlayers.map(qp => {
-        const player = players.find(p => p.name === qp.name);
+      const currentTeamData: TeamPlayerData[] = teamPlayers.map(tp => {
+        const player = players.find(p => p.name === tp.name);
         return {
-          id: qp.id,
+          id: tp.id,
           playerId: player?.id || '',
-          sittingOut: qp.id === playerId ? !qp.sittingOut : qp.sittingOut
+          sittingOut: tp.id === playerId ? !tp.sittingOut : tp.sittingOut
         };
       });
-      updateQueuePlayers(currentQueueData);
+      updateTeamPlayers(currentTeamData);
     }
   };
 
@@ -90,16 +90,16 @@ export const QueueSection = ({
   };
 
   const getPlayerAtPosition = (position: number) => {
-    return queuePlayers.find(p => p.id === position);
+    return teamPlayers.find(p => p.id === position);
   };
 
-  const renderQueuePosition = (position: number) => {
+  const renderTeamPosition = (position: number) => {
     const player = getPlayerAtPosition(position);
     const isEditing = editingIndex === position - 1;
 
     if (isEditing && gameMode === 'setup') {
       const availablePlayers = players.filter(p => 
-        !queuePlayers.some(qp => qp.name === p.name)
+        !teamPlayers.some(tp => tp.name === p.name)
       );
 
       return (
@@ -115,7 +115,7 @@ export const QueueSection = ({
                 onPlayersChanged?.();
               }
             }}
-            placeholder="Select player for queue"
+            placeholder="Select player for team"
           />
           <div className="flex justify-center">
             <button
@@ -134,7 +134,7 @@ export const QueueSection = ({
         return (
           <div
             key={position}
-            onClick={() => toggleQueuePlayerSittingOut(player.id)}
+            onClick={() => toggleTeamPlayerSittingOut(player.id)}
             className={`rounded-lg p-3 cursor-pointer transition-colors touch-manipulation ${
               player.sittingOut 
                 ? "bg-gray-400 text-gray-600" 
@@ -182,7 +182,7 @@ export const QueueSection = ({
   };
 
   const getPositionsToShow = () => {
-    const filledPositions = queuePlayers.sort((a, b) => a.id - b.id);
+    const filledPositions = teamPlayers.sort((a, b) => a.id - b.id);
     const positions = [];
     
     for (const player of filledPositions) {
@@ -191,7 +191,7 @@ export const QueueSection = ({
     
     if (gameMode === 'setup') {
       const nextEmptyPosition = filledPositions.length + 1;
-      if (nextEmptyPosition <= maxQueuePositions) {
+      if (nextEmptyPosition <= maxTeamPositions) {
         positions.push(nextEmptyPosition);
       }
       
@@ -222,21 +222,21 @@ export const QueueSection = ({
 
   return (
     <div className={`bg-white rounded-lg shadow-lg p-6 h-full flex flex-col ${className}`}>
-      <h2 className="text-2xl font-bold mb-6 text-center">Spectator Queue</h2>
+      <h2 className="text-sm font-medium text-gray-400 mb-4 text-center">TEAM</h2>
       
       <div className="flex-1 overflow-y-auto">
         {shouldUseColumns ? (
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-3">
-              {leftColumn.map(position => renderQueuePosition(position)).filter(Boolean)}
+              {leftColumn.map(position => renderTeamPosition(position)).filter(Boolean)}
             </div>
             <div className="space-y-3">
-              {rightColumn.map(position => renderQueuePosition(position)).filter(Boolean)}
+              {rightColumn.map(position => renderTeamPosition(position)).filter(Boolean)}
             </div>
           </div>
         ) : (
           <div className="space-y-3">
-            {positionsToShow.map(position => renderQueuePosition(position)).filter(Boolean)}
+            {positionsToShow.map(position => renderTeamPosition(position)).filter(Boolean)}
           </div>
         )}
       </div>

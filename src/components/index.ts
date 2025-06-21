@@ -1,6 +1,6 @@
 export { BoxSection } from './BoxSection';
-export { CaptainSection } from './CaptainSection';
-export { QueueSection } from './QueueSection';
+export { TeamCaptainSection } from './TeamCaptainSection';
+export { TeamSection } from './TeamSection';
 export { ScoreInputModal } from './ScoreInputModal';
 export { PlayerSelector } from './PlayerSelector';
 export { MenuComponent } from './MenuComponent';

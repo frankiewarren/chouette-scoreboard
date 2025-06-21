@@ -59,7 +59,7 @@ export const BoxSection = ({
     return (
       <div className={`bg-white rounded-lg shadow-lg p-6 h-full flex flex-col justify-center ${className}`}>
         <div className="text-center">
-          <h2 className="text-lg font-semibold text-gray-600 mb-4">BOX</h2>
+          <h2 className="text-sm font-medium text-gray-400 mb-3">BOX</h2>
           
           <div 
             onClick={onToggleSittingOut}
@@ -87,7 +87,7 @@ export const BoxSection = ({
   return (
     <div className={`bg-white rounded-lg shadow-lg p-6 h-full flex flex-col justify-center ${className}`}>
       <div className="text-center">
-        <h2 className="text-lg font-semibold text-gray-600 mb-4">BOX</h2>
+        <h2 className="text-sm font-medium text-gray-400 mb-3">BOX</h2>
         
         {!boxPlayer && !isEditing ? (
           <button

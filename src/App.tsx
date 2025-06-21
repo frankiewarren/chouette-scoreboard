@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
-import { BoxSection, CaptainSection, QueueSection, ScoreInputModal, PlayerSelector, MenuComponent } from './components';
-import type { Player, GameSession, QueuePlayerData } from './types';
+import { BoxSection, TeamCaptainSection, TeamSection, ScoreInputModal, PlayerSelector, MenuComponent } from './components';
+import type { Player, GameSession, TeamPlayerData } from './types';
 import { playerService } from './services/PlayerService';
 import { sessionService } from './services/SessionService';
 
 function App() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [session, setSession] = useState<GameSession | null>(null);
-  const [queueData, setQueueData] = useState<QueuePlayerData[]>([]);
+  const [teamData, setTeamData] = useState<TeamPlayerData[]>([]);
   
   const [isScoreModalOpen, setIsScoreModalOpen] = useState(false);
 
@@ -26,17 +26,17 @@ function App() {
     setSession(currentSession);
 
     if (currentSession.gameMode === 'game') {
-      updateQueueData(currentSession);
+      updateTeamData(currentSession);
     }
   };
 
-  const updateQueueData = (currentSession: GameSession) => {
-    const queueData: QueuePlayerData[] = currentSession.queuePlayerIds.map((playerId, index) => ({
+  const updateTeamData = (currentSession: GameSession) => {
+    const teamData: TeamPlayerData[] = currentSession.teamPlayerIds.map((playerId, index) => ({
       id: index + 1,
       playerId,
       sittingOut: currentSession.playersSittingOut[playerId] || false
     }));
-    setQueueData(queueData);
+    setTeamData(teamData);
   };
 
   const refreshPlayers = () => {
@@ -44,19 +44,19 @@ function App() {
     setPlayers(allPlayers);
   };
 
-  const canBeginChouette = session?.boxPlayerId && session?.captainPlayerId;
+  const canBeginChouette = session?.boxPlayerId && session?.teamCaptainPlayerId;
 
   const handleBeginChouette = () => {
     if (canBeginChouette && session) {
-      const queuePlayerIds = queueData.map(q => q.playerId);
+      const teamPlayerIds = teamData.map(t => t.playerId);
       const updatedSession = sessionService.startGame(
         session, 
         session.boxPlayerId!, 
-        session.captainPlayerId!, 
-        queuePlayerIds
+        session.teamCaptainPlayerId!, 
+        teamPlayerIds
       );
       setSession(updatedSession);
-      updateQueueData(updatedSession);
+      updateTeamData(updatedSession);
     }
   };
 
@@ -83,53 +83,53 @@ function App() {
     const updatedSession = sessionService.updateScores(session, playerIdToScoreMap);
 
     const boxPlayer = players.find(p => p.id === updatedSession.boxPlayerId);
-    const captainPlayer = players.find(p => p.id === updatedSession.captainPlayerId);
+    const teamCaptainPlayer = players.find(p => p.id === updatedSession.teamCaptainPlayerId);
     
-    if (!boxPlayer || !captainPlayer) return;
+    if (!boxPlayer || !teamCaptainPlayer) return;
 
     const boxScore = playerIdToScoreMap[boxPlayer.id] || 0;
-    const captainScore = playerIdToScoreMap[captainPlayer.id] || 0;
+    const teamCaptainScore = playerIdToScoreMap[teamCaptainPlayer.id] || 0;
     
     let newBoxPlayerId = updatedSession.boxPlayerId!;
-    let newCaptainPlayerId = updatedSession.captainPlayerId!;
-    let newQueuePlayerIds = [...updatedSession.queuePlayerIds];
+    let newTeamCaptainPlayerId = updatedSession.teamCaptainPlayerId!;
+    let newTeamPlayerIds = [...updatedSession.teamPlayerIds];
 
-    const activeQueuePlayerIds = newQueuePlayerIds.filter(playerId => 
+    const activeTeamPlayerIds = newTeamPlayerIds.filter(playerId => 
       !updatedSession.playersSittingOut[playerId]
     );
-    const inactiveQueuePlayerIds = newQueuePlayerIds.filter(playerId => 
+    const inactiveTeamPlayerIds = newTeamPlayerIds.filter(playerId => 
       updatedSession.playersSittingOut[playerId]
     );
 
     if (boxScore > 0) {
-      if (activeQueuePlayerIds.length > 0) {
-        const newCaptainId = activeQueuePlayerIds[0];
-        newCaptainPlayerId = newCaptainId;
+      if (activeTeamPlayerIds.length > 0) {
+        const newTeamCaptainId = activeTeamPlayerIds[0];
+        newTeamCaptainPlayerId = newTeamCaptainId;
         
-        newQueuePlayerIds = activeQueuePlayerIds.slice(1)
-          .concat([updatedSession.captainPlayerId!])
-          .concat(inactiveQueuePlayerIds);
+        newTeamPlayerIds = activeTeamPlayerIds.slice(1)
+          .concat([updatedSession.teamCaptainPlayerId!])
+          .concat(inactiveTeamPlayerIds);
       }
-    } else if (captainScore > 0) {
-      if (activeQueuePlayerIds.length > 0) {
-        newBoxPlayerId = updatedSession.captainPlayerId!;
-        newCaptainPlayerId = activeQueuePlayerIds[0];
+    } else if (teamCaptainScore > 0) {
+      if (activeTeamPlayerIds.length > 0) {
+        newBoxPlayerId = updatedSession.teamCaptainPlayerId!;
+        newTeamCaptainPlayerId = activeTeamPlayerIds[0];
         
-        newQueuePlayerIds = activeQueuePlayerIds.slice(1)
+        newTeamPlayerIds = activeTeamPlayerIds.slice(1)
           .concat([updatedSession.boxPlayerId!])
-          .concat(inactiveQueuePlayerIds);
+          .concat(inactiveTeamPlayerIds);
       }
     }
 
     const finalSession = sessionService.updatePlayerPositions(
       updatedSession, 
       newBoxPlayerId, 
-      newCaptainPlayerId, 
-      newQueuePlayerIds
+      newTeamCaptainPlayerId, 
+      newTeamPlayerIds
     );
     
     setSession(finalSession);
-    updateQueueData(finalSession);
+    updateTeamData(finalSession);
     setIsScoreModalOpen(false);
   };
 
@@ -141,14 +141,14 @@ function App() {
     playerService.updatePlayerScores(finalScores);
     
     setSession(newSession);
-    setQueueData([]);
+    setTeamData([]);
     refreshPlayers();
   };
 
-  const toggleSittingOut = (playerType: 'box' | 'captain') => {
+  const toggleSittingOut = (playerType: 'box' | 'teamCaptain') => {
     if (!session) return;
 
-    const playerId = playerType === 'box' ? session.boxPlayerId : session.captainPlayerId;
+    const playerId = playerType === 'box' ? session.boxPlayerId : session.teamCaptainPlayerId;
     if (!playerId) return;
 
     const updatedSession = sessionService.toggleSittingOut(session, playerId);
@@ -163,19 +163,19 @@ function App() {
     refreshPlayers();
   };
 
-  const handleCaptainPlayerSelect = (playerId: string) => {
+  const handleTeamCaptainPlayerSelect = (playerId: string) => {
     if (!session) return;
-    const updatedSession = { ...session, captainPlayerId: playerId || null };
+    const updatedSession = { ...session, teamCaptainPlayerId: playerId || null };
     sessionService.updateSession(updatedSession);
     setSession(updatedSession);
     refreshPlayers();
   };
 
-  const handleQueuePlayersChange = (newQueueData: QueuePlayerData[]) => {
-    setQueueData(newQueueData);
+  const handleTeamPlayersChange = (newTeamData: TeamPlayerData[]) => {
+    setTeamData(newTeamData);
     if (session) {
-      const queuePlayerIds = newQueueData.map(q => q.playerId);
-      const updatedSession = { ...session, queuePlayerIds };
+      const teamPlayerIds = newTeamData.map(t => t.playerId);
+      const updatedSession = { ...session, teamPlayerIds };
       sessionService.updateSession(updatedSession);
       setSession(updatedSession);
     }
@@ -186,14 +186,14 @@ function App() {
     return players.find(p => p.id === id) || null;
   };
 
-  const getQueuePlayers = () => {
-    return queueData.map(q => {
-      const player = getPlayerById(q.playerId);
+  const getTeamPlayers = () => {
+    return teamData.map(t => {
+      const player = getPlayerById(t.playerId);
       return player ? {
-        id: q.id,
+        id: t.id,
         name: player.name,
         score: session?.currentChouetteScores[player.id] || 0,
-        sittingOut: q.sittingOut
+        sittingOut: t.sittingOut
       } : null;
     }).filter(Boolean) as Array<{
       id: number;
@@ -243,7 +243,7 @@ function App() {
               {session.gameMode === 'setup' ? (
                 <div className="bg-white rounded-lg shadow-lg p-6 h-full flex flex-col justify-center">
                   <div className="text-center">
-                    <h2 className="text-lg font-semibold text-gray-600 mb-4">BOX</h2>
+                    <h2 className="text-sm font-medium text-gray-400 mb-3">BOX</h2>
                     <PlayerSelector
                       players={players}
                       selectedPlayerId={session.boxPlayerId || undefined}
@@ -272,32 +272,32 @@ function App() {
               {session.gameMode === 'setup' ? (
                 <div className="bg-white rounded-lg shadow-lg p-6 h-full flex flex-col justify-center">
                   <div className="text-center">
-                    <h2 className="text-lg font-semibold text-gray-600 mb-4">CAPTAIN</h2>
+                    <h2 className="text-sm font-medium text-gray-400 mb-3">TEAM CAPTAIN</h2>
                     <PlayerSelector
                       players={players}
-                      selectedPlayerId={session.captainPlayerId || undefined}
-                      onPlayerSelect={handleCaptainPlayerSelect}
-                      placeholder="Select Captain Player"
+                      selectedPlayerId={session.teamCaptainPlayerId || undefined}
+                      onPlayerSelect={handleTeamCaptainPlayerSelect}
+                      placeholder="Select Team Captain Player"
                     />
                   </div>
                 </div>
               ) : (
-                <CaptainSection 
+                <TeamCaptainSection 
                   className="h-full" 
                   gameMode={session.gameMode}
-                  player={getPlayerForDisplay(session.captainPlayerId)}
-                  onToggleSittingOut={() => toggleSittingOut('captain')}
+                  player={getPlayerForDisplay(session.teamCaptainPlayerId)}
+                  onToggleSittingOut={() => toggleSittingOut('teamCaptain')}
                 />
               )}
             </div>
           </div>
           
           <div className="w-1/2">
-            <QueueSection 
+            <TeamSection 
               className="h-full" 
               gameMode={session.gameMode}
-              queuePlayers={getQueuePlayers()}
-              onQueuePlayersChange={handleQueuePlayersChange}
+              teamPlayers={getTeamPlayers()}
+              onTeamPlayersChange={handleTeamPlayersChange}
               players={players}
               onPlayersChanged={refreshPlayers}
             />
@@ -328,8 +328,8 @@ function App() {
         <ScoreInputModal
           isOpen={isScoreModalOpen}
           boxPlayer={getPlayerForDisplay(session.boxPlayerId)}
-          captainPlayer={getPlayerForDisplay(session.captainPlayerId)}
-          queuePlayers={getQueuePlayers()}
+          captainPlayer={getPlayerForDisplay(session.teamCaptainPlayerId)}
+          queuePlayers={getTeamPlayers()}
           onCancel={handleScoreModalCancel}
           onSubmit={handleScoreModalSubmit}
         />

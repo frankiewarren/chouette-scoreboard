@@ -13,8 +13,8 @@ export interface GameSession {
   isComplete: boolean;
   
   boxPlayerId: string | null;
-  captainPlayerId: string | null;
-  queuePlayerIds: string[];
+  teamCaptainPlayerId: string | null;
+  teamPlayerIds: string[];
   
   currentChouetteScores: { [playerId: string]: number };
   playersSittingOut: { [playerId: string]: boolean };
@@ -22,6 +22,13 @@ export interface GameSession {
 
 export type GameMode = 'setup' | 'game';
 
+export interface TeamPlayerData {
+  id: number;
+  playerId: string;
+  sittingOut: boolean;
+}
+
+// Keep legacy interface for compatibility during transition
 export interface QueuePlayerData {
   id: number;
   playerId: string;
