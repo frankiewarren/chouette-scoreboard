@@ -8,7 +8,7 @@ interface Player {
   sittingOut: boolean;
 }
 
-interface BoxSectionProps {
+interface CaptainSectionProps {
   className?: string;
   gameMode?: GameMode;
   player?: Player | null;
@@ -16,14 +16,14 @@ interface BoxSectionProps {
   onToggleSittingOut?: () => void;
 }
 
-export const BoxSection = ({ 
+export const CaptainSection = ({ 
   className = "", 
   gameMode = 'setup', 
   player, 
   onPlayerAdd, 
   onToggleSittingOut 
-}: BoxSectionProps) => {
-  const [boxPlayer, setBoxPlayer] = useState<string>("");
+}: CaptainSectionProps) => {
+  const [captainPlayer, setCaptainPlayer] = useState<string>("");
   const [isEditing, setIsEditing] = useState(false);
   const [tempName, setTempName] = useState("");
 
@@ -34,7 +34,7 @@ export const BoxSection = ({
 
   const handleSavePlayer = () => {
     if (tempName.trim()) {
-      setBoxPlayer(tempName.trim());
+      setCaptainPlayer(tempName.trim());
       onPlayerAdd?.(tempName.trim());
       setIsEditing(false);
       setTempName("");
@@ -59,14 +59,14 @@ export const BoxSection = ({
     return (
       <div className={`bg-white rounded-lg shadow-lg p-6 h-full flex flex-col justify-center ${className}`}>
         <div className="text-center">
-          <h2 className="text-lg font-semibold text-gray-600 mb-4">BOX</h2>
+          <h2 className="text-lg font-semibold text-gray-600 mb-4">CAPTAIN</h2>
           
           <div 
             onClick={onToggleSittingOut}
             className={`w-full rounded-lg p-8 text-2xl font-bold cursor-pointer transition-colors touch-manipulation ${
               player.sittingOut 
                 ? "bg-gray-400 text-gray-600" 
-                : "bg-blue-600 text-white hover:bg-blue-700"
+                : "bg-green-600 text-white hover:bg-green-700"
             }`}
           >
             <div>{player.name}</div>
@@ -87,12 +87,12 @@ export const BoxSection = ({
   return (
     <div className={`bg-white rounded-lg shadow-lg p-6 h-full flex flex-col justify-center ${className}`}>
       <div className="text-center">
-        <h2 className="text-lg font-semibold text-gray-600 mb-4">BOX</h2>
+        <h2 className="text-lg font-semibold text-gray-600 mb-4">CAPTAIN</h2>
         
-        {!boxPlayer && !isEditing ? (
+        {!captainPlayer && !isEditing ? (
           <button
             onClick={handleAddPlayer}
-            className="w-full border-2 border-dashed border-gray-300 rounded-lg p-8 text-gray-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-colors text-xl font-medium touch-manipulation"
+            className="w-full border-2 border-dashed border-gray-300 rounded-lg p-8 text-gray-500 hover:border-green-400 hover:text-green-600 hover:bg-green-50 transition-colors text-xl font-medium touch-manipulation"
           >
             Add Player
           </button>
@@ -104,13 +104,13 @@ export const BoxSection = ({
               onChange={(e) => setTempName(e.target.value)}
               onKeyDown={handleKeyPress}
               placeholder="Enter player name"
-              className="w-full p-4 text-xl text-center border-2 border-blue-400 rounded-lg focus:outline-none focus:border-blue-600"
+              className="w-full p-4 text-xl text-center border-2 border-green-400 rounded-lg focus:outline-none focus:border-green-600"
               autoFocus
             />
             <div className="flex gap-3 justify-center">
               <button
                 onClick={handleSavePlayer}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors touch-manipulation"
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors touch-manipulation"
               >
                 Save
               </button>
@@ -125,9 +125,9 @@ export const BoxSection = ({
         ) : (
           <div 
             onClick={() => setIsEditing(true)}
-            className="w-full bg-blue-600 text-white rounded-lg p-8 text-2xl font-bold cursor-pointer hover:bg-blue-700 transition-colors touch-manipulation"
+            className="w-full bg-green-600 text-white rounded-lg p-8 text-2xl font-bold cursor-pointer hover:bg-green-700 transition-colors touch-manipulation"
           >
-            {boxPlayer}
+            {captainPlayer}
           </div>
         )}
       </div>
