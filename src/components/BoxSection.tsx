@@ -66,13 +66,13 @@ export const BoxSection = ({
             className={`w-full rounded-lg p-8 text-2xl font-bold cursor-pointer transition-colors touch-manipulation ${
               player.sittingOut 
                 ? "bg-gray-400 text-gray-600" 
-                : "bg-blue-600 text-white hover:bg-blue-700"
+                : "bg-slate-600 text-white hover:bg-slate-700"
             }`}
           >
             <div>{player.name}</div>
             <div className="text-lg font-medium mt-2">
               Score: <span className={
-                player.score > 0 ? "text-green-200" :
+                player.score > 0 ? "text-emerald-200" :
                 player.score < 0 ? "text-red-200" :
                 "text-gray-300"
               }>{player.score}</span>
@@ -92,7 +92,7 @@ export const BoxSection = ({
         {!boxPlayer && !isEditing ? (
           <button
             onClick={handleAddPlayer}
-            className="w-full border-2 border-dashed border-gray-300 rounded-lg p-8 text-gray-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-colors text-xl font-medium touch-manipulation"
+            className="w-full border-2 border-dashed border-gray-300 rounded-lg p-8 text-gray-500 hover:border-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors text-xl font-medium touch-manipulation"
           >
             Add Player
           </button>
@@ -104,13 +104,13 @@ export const BoxSection = ({
               onChange={(e) => setTempName(e.target.value)}
               onKeyDown={handleKeyPress}
               placeholder="Enter player name"
-              className="w-full p-4 text-xl text-center border-2 border-blue-400 rounded-lg focus:outline-none focus:border-blue-600"
+              className="w-full p-4 text-xl text-center border-2 border-slate-400 rounded-lg focus:outline-none focus:border-slate-600"
               autoFocus
             />
             <div className="flex gap-3 justify-center">
               <button
                 onClick={handleSavePlayer}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors touch-manipulation"
+                className="px-6 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors touch-manipulation"
               >
                 Save
               </button>
@@ -125,7 +125,7 @@ export const BoxSection = ({
         ) : (
           <div 
             onClick={() => setIsEditing(true)}
-            className="w-full bg-blue-600 text-white rounded-lg p-8 text-2xl font-bold cursor-pointer hover:bg-blue-700 transition-colors touch-manipulation"
+            className="w-full bg-slate-600 text-white rounded-lg p-8 text-2xl font-bold cursor-pointer hover:bg-slate-700 transition-colors touch-manipulation"
           >
             {boxPlayer}
           </div>

@@ -249,6 +249,7 @@ function App() {
                       selectedPlayerId={session.boxPlayerId || undefined}
                       onPlayerSelect={handleBoxPlayerSelect}
                       placeholder="Select Box Player"
+                      colorScheme="slate"
                     />
                   </div>
                 </div>
@@ -278,6 +279,7 @@ function App() {
                       selectedPlayerId={session.teamCaptainPlayerId || undefined}
                       onPlayerSelect={handleTeamCaptainPlayerSelect}
                       placeholder="Select Team Captain Player"
+                      colorScheme="emerald"
                     />
                   </div>
                 </div>

@@ -85,9 +85,6 @@ export const TeamSection = ({
     }
   };
 
-  const handleCancel = () => {
-    setEditingIndex(null);
-  };
 
   const getPlayerAtPosition = (position: number) => {
     return teamPlayers.find(p => p.id === position);
@@ -116,15 +113,8 @@ export const TeamSection = ({
               }
             }}
             placeholder="Select player for team"
+            colorScheme="emerald"
           />
-          <div className="flex justify-center">
-            <button
-              onClick={handleCancel}
-              className="px-4 py-1 bg-gray-300 text-gray-700 rounded text-sm hover:bg-gray-400 transition-colors touch-manipulation"
-            >
-              Cancel
-            </button>
-          </div>
         </div>
       );
     }
@@ -138,7 +128,7 @@ export const TeamSection = ({
             className={`rounded-lg p-3 cursor-pointer transition-colors touch-manipulation ${
               player.sittingOut 
                 ? "bg-gray-400 text-gray-600" 
-                : "bg-purple-600 text-white hover:bg-purple-700"
+                : "bg-emerald-600 text-white hover:bg-emerald-700"
             }`}
           >
             <div>
@@ -146,7 +136,7 @@ export const TeamSection = ({
             </div>
             <div className="text-sm mt-1">
               Score: <span className={
-                player.score > 0 ? "text-green-200" :
+                player.score > 0 ? "text-emerald-200" :
                 player.score < 0 ? "text-red-200" :
                 "text-gray-300"
               }>{player.score}</span>
@@ -158,7 +148,7 @@ export const TeamSection = ({
           <div
             key={position}
             onClick={() => handleAddPlayer(position - 1)}
-            className="bg-purple-600 text-white rounded-lg p-3 cursor-pointer hover:bg-purple-700 transition-colors touch-manipulation"
+            className="bg-emerald-600 text-white rounded-lg p-3 cursor-pointer hover:bg-emerald-700 transition-colors touch-manipulation"
           >
             <span className="font-semibold">{position}.</span> {player.name}
           </div>
@@ -171,7 +161,7 @@ export const TeamSection = ({
         <button
           key={position}
           onClick={() => handleAddPlayer(position - 1)}
-          className="border-2 border-dashed border-gray-300 rounded-lg p-3 text-gray-500 hover:border-purple-400 hover:text-purple-600 hover:bg-purple-50 transition-colors touch-manipulation text-left"
+          className="border-2 border-dashed border-gray-300 rounded-lg p-3 text-gray-500 hover:border-emerald-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors touch-manipulation text-left"
         >
           <span className="font-semibold">{position}.</span> Add Player
         </button>

@@ -8,6 +8,7 @@ interface PlayerSelectorProps {
   onPlayerSelect: (playerId: string) => void;
   placeholder?: string;
   className?: string;
+  colorScheme?: 'slate' | 'emerald';
 }
 
 export const PlayerSelector = ({ 
@@ -15,11 +16,36 @@ export const PlayerSelector = ({
   selectedPlayerId, 
   onPlayerSelect, 
   placeholder = "Select a player",
-  className = ""
+  className = "",
+  colorScheme = "slate"
 }: PlayerSelectorProps) => {
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [newPlayerName, setNewPlayerName] = useState("");
   const [error, setError] = useState("");
+
+  // Color scheme mappings
+  const colors = {
+    slate: {
+      border: 'border-slate-400',
+      focusBorder: 'focus:border-slate-600',
+      bg: 'bg-slate-600',
+      hover: 'hover:bg-slate-700',
+      hoverBorder: 'hover:border-slate-400',
+      hoverText: 'hover:text-slate-600',
+      hoverBg: 'hover:bg-slate-50'
+    },
+    emerald: {
+      border: 'border-emerald-400',
+      focusBorder: 'focus:border-emerald-600',
+      bg: 'bg-emerald-700',
+      hover: 'hover:bg-emerald-800',
+      hoverBorder: 'hover:border-emerald-400',
+      hoverText: 'hover:text-emerald-600',
+      hoverBg: 'hover:bg-emerald-50'
+    }
+  };
+
+  const currentColors = colors[colorScheme];
 
   const handleAddNewPlayer = () => {
     setIsAddingNew(true);
@@ -70,7 +96,11 @@ export const PlayerSelector = ({
             onChange={(e) => setNewPlayerName(e.target.value)}
             onKeyDown={handleKeyPress}
             placeholder="Enter player name"
-            className="w-full p-4 text-xl text-center border-2 border-blue-400 rounded-lg focus:outline-none focus:border-blue-600"
+            className={`w-full p-4 text-xl text-center border-2 rounded-lg focus:outline-none ${
+              colorScheme === 'emerald' 
+                ? 'border-emerald-400 focus:border-emerald-600'
+                : 'border-slate-400 focus:border-slate-600'
+            }`}
             autoFocus
           />
           {error && (
@@ -79,7 +109,7 @@ export const PlayerSelector = ({
           <div className="flex gap-3 justify-center">
             <button
               onClick={handleSaveNewPlayer}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors touch-manipulation"
+              className={`px-6 py-2 ${currentColors.bg} text-white rounded-lg ${currentColors.hover} transition-colors touch-manipulation`}
             >
               Save
             </button>
@@ -105,7 +135,7 @@ export const PlayerSelector = ({
             <select
               value={selectedPlayerId || ""}
               onChange={(e) => e.target.value && onPlayerSelect(e.target.value)}
-              className="w-full p-4 text-xl text-center border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 bg-white"
+              className={`w-full p-4 text-xl text-center border-2 border-gray-300 rounded-lg focus:outline-none ${currentColors.focusBorder} bg-white`}
             >
               <option value="">{placeholder}</option>
               {players.map((player) => (
@@ -117,7 +147,7 @@ export const PlayerSelector = ({
           )}
           <button
             onClick={handleAddNewPlayer}
-            className="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-gray-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-colors text-xl font-medium touch-manipulation"
+            className={`w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-gray-500 ${currentColors.hoverBorder} ${currentColors.hoverText} ${currentColors.hoverBg} transition-colors text-xl font-medium touch-manipulation`}
           >
             Add New Player
           </button>
@@ -125,7 +155,7 @@ export const PlayerSelector = ({
       ) : (
         <div 
           onClick={() => onPlayerSelect("")}
-          className="w-full bg-blue-600 text-white rounded-lg p-8 text-2xl font-bold cursor-pointer hover:bg-blue-700 transition-colors touch-manipulation text-center"
+          className={`w-full ${currentColors.bg} text-white rounded-lg p-8 text-2xl font-bold cursor-pointer ${currentColors.hover} transition-colors touch-manipulation text-center`}
         >
           {selectedPlayer.name}
         </div>

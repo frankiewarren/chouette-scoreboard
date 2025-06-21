@@ -66,13 +66,13 @@ export const TeamCaptainSection = ({
             className={`w-full rounded-lg p-8 text-2xl font-bold cursor-pointer transition-colors touch-manipulation ${
               player.sittingOut 
                 ? "bg-gray-400 text-gray-600" 
-                : "bg-green-600 text-white hover:bg-green-700"
+                : "bg-emerald-700 text-white hover:bg-emerald-800"
             }`}
           >
             <div>{player.name}</div>
             <div className="text-lg font-medium mt-2">
               Score: <span className={
-                player.score > 0 ? "text-green-200" :
+                player.score > 0 ? "text-emerald-200" :
                 player.score < 0 ? "text-red-200" :
                 "text-gray-300"
               }>{player.score}</span>
@@ -92,7 +92,7 @@ export const TeamCaptainSection = ({
         {!teamCaptainPlayer && !isEditing ? (
           <button
             onClick={handleAddPlayer}
-            className="w-full border-2 border-dashed border-gray-300 rounded-lg p-8 text-gray-500 hover:border-green-400 hover:text-green-600 hover:bg-green-50 transition-colors text-xl font-medium touch-manipulation"
+            className="w-full border-2 border-dashed border-gray-300 rounded-lg p-8 text-gray-500 hover:border-emerald-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors text-xl font-medium touch-manipulation"
           >
             Add Player
           </button>
@@ -104,13 +104,13 @@ export const TeamCaptainSection = ({
               onChange={(e) => setTempName(e.target.value)}
               onKeyDown={handleKeyPress}
               placeholder="Enter player name"
-              className="w-full p-4 text-xl text-center border-2 border-green-400 rounded-lg focus:outline-none focus:border-green-600"
+              className="w-full p-4 text-xl text-center border-2 border-emerald-400 rounded-lg focus:outline-none focus:border-emerald-600"
               autoFocus
             />
             <div className="flex gap-3 justify-center">
               <button
                 onClick={handleSavePlayer}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors touch-manipulation"
+                className="px-6 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors touch-manipulation"
               >
                 Save
               </button>
@@ -125,7 +125,7 @@ export const TeamCaptainSection = ({
         ) : (
           <div 
             onClick={() => setIsEditing(true)}
-            className="w-full bg-green-600 text-white rounded-lg p-8 text-2xl font-bold cursor-pointer hover:bg-green-700 transition-colors touch-manipulation"
+            className="w-full bg-emerald-700 text-white rounded-lg p-8 text-2xl font-bold cursor-pointer hover:bg-emerald-800 transition-colors touch-manipulation"
           >
             {teamCaptainPlayer}
           </div>

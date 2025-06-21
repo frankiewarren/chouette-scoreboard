@@ -139,7 +139,7 @@ export const ScoreInputModal = ({
                       
                       <button
                         onClick={() => incrementScore(player.name)}
-                        className="w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold text-xl flex items-center justify-center touch-manipulation transition-colors"
+                        className="w-12 h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xl flex items-center justify-center touch-manipulation transition-colors"
                         type="button"
                       >
                         +
@@ -153,7 +153,7 @@ export const ScoreInputModal = ({
               <div className="mb-6 p-4 rounded-lg bg-gray-50 border">
                 <div className="flex justify-between items-center">
                   <span className="font-semibold">Total Sum:</span>
-                  <span className={`font-bold ${isValidSum ? 'text-green-600' : 'text-red-600'}`}>
+                  <span className={`font-bold ${isValidSum ? 'text-emerald-600' : 'text-red-600'}`}>
                     {totalSum}
                   </span>
                 </div>
@@ -177,7 +177,7 @@ export const ScoreInputModal = ({
             <button
               onClick={handleSubmit}
               disabled={!isValidSum || !hasAllPlayers}
-              className="flex-1 py-4 px-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors touch-manipulation text-lg"
+              className="flex-1 py-4 px-4 bg-slate-600 text-white rounded-lg font-semibold hover:bg-slate-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors touch-manipulation text-lg"
             >
               Submit Scores
             </button>
