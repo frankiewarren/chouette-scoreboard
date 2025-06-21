@@ -26,7 +26,6 @@ export const TeamSection = ({
   players = [],
   onPlayersChanged
 }: TeamSectionProps) => {
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const maxTeamPositions = 12;
 
@@ -34,42 +33,6 @@ export const TeamSection = ({
     onTeamPlayersChange?.(newPlayers);
   };
 
-  const handleAddPlayer = (index: number) => {
-    if (gameMode === 'setup') {
-      setEditingIndex(index);
-    }
-  };
-
-  const handlePlayerSelect = (playerId: string) => {
-    if (editingIndex !== null && playerId) {
-      const newTeamData: TeamPlayerData = {
-        id: editingIndex + 1,
-        playerId,
-        sittingOut: false
-      };
-      
-      const currentTeamData: TeamPlayerData[] = teamPlayers.map(tp => {
-        const player = players.find(p => p.name === tp.name);
-        return {
-          id: tp.id,
-          playerId: player?.id || '',
-          sittingOut: tp.sittingOut
-        };
-      });
-      
-      const existingIndex = currentTeamData.findIndex(q => q.id === editingIndex + 1);
-      
-      if (existingIndex >= 0) {
-        currentTeamData[existingIndex] = newTeamData;
-      } else {
-        currentTeamData.push(newTeamData);
-        currentTeamData.sort((a, b) => a.id - b.id);
-      }
-      
-      updateTeamPlayers(currentTeamData);
-      setEditingIndex(null);
-    }
-  };
 
   const toggleTeamPlayerSittingOut = (playerId: number) => {
     if (gameMode === 'game') {
@@ -92,32 +55,6 @@ export const TeamSection = ({
 
   const renderTeamPosition = (position: number) => {
     const player = getPlayerAtPosition(position);
-    const isEditing = editingIndex === position - 1;
-
-    if (isEditing && gameMode === 'setup') {
-      const availablePlayers = players.filter(p => 
-        !teamPlayers.some(tp => tp.name === p.name)
-      );
-
-      return (
-        <div key={position} className="space-y-2">
-          <div className="text-sm font-semibold text-gray-600 mb-2">
-            Position {position}:
-          </div>
-          <PlayerSelector
-            players={availablePlayers}
-            onPlayerSelect={(playerId) => {
-              handlePlayerSelect(playerId);
-              if (playerId) {
-                onPlayersChanged?.();
-              }
-            }}
-            placeholder="Select player for team"
-            colorScheme="emerald"
-          />
-        </div>
-      );
-    }
 
     if (player) {
       if (gameMode === 'game') {
@@ -147,7 +84,6 @@ export const TeamSection = ({
         return (
           <div
             key={position}
-            onClick={() => handleAddPlayer(position - 1)}
             className="bg-emerald-600 text-white rounded-lg p-3 cursor-pointer hover:bg-emerald-700 transition-colors touch-manipulation"
           >
             <span className="font-semibold">{position}.</span> {player.name}
@@ -157,14 +93,51 @@ export const TeamSection = ({
     }
 
     if (gameMode === 'setup') {
+      const availablePlayers = players.filter(p => 
+        !teamPlayers.some(tp => tp.name === p.name)
+      );
+
       return (
-        <button
-          key={position}
-          onClick={() => handleAddPlayer(position - 1)}
-          className="border-2 border-dashed border-gray-300 rounded-lg p-3 text-gray-500 hover:border-emerald-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors touch-manipulation text-left"
-        >
-          <span className="font-semibold">{position}.</span> Add Player
-        </button>
+        <div key={position} className="space-y-2">
+          <div className="text-sm font-semibold text-gray-600 mb-2">
+            Position {position}:
+          </div>
+          <PlayerSelector
+            players={availablePlayers}
+            onPlayerSelect={(playerId) => {
+              if (playerId) {
+                const newTeamData: TeamPlayerData = {
+                  id: position,
+                  playerId,
+                  sittingOut: false
+                };
+                
+                const currentTeamData: TeamPlayerData[] = teamPlayers.map(tp => {
+                  const player = players.find(p => p.name === tp.name);
+                  return {
+                    id: tp.id,
+                    playerId: player?.id || '',
+                    sittingOut: tp.sittingOut
+                  };
+                });
+                
+                const existingIndex = currentTeamData.findIndex(q => q.id === position);
+                
+                if (existingIndex >= 0) {
+                  currentTeamData[existingIndex] = newTeamData;
+                } else {
+                  currentTeamData.push(newTeamData);
+                  currentTeamData.sort((a, b) => a.id - b.id);
+                }
+                
+                updateTeamPlayers(currentTeamData);
+                onPlayersChanged?.();
+              }
+            }}
+            placeholder="Select player for team"
+            colorScheme="emerald"
+          />
+        </div>
       );
     }
 
