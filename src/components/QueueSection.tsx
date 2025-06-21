@@ -1,90 +1,92 @@
 import { useState } from 'react';
+import type { Player, QueuePlayerData } from '../types';
+import { PlayerSelector } from './PlayerSelector';
 
 type GameMode = 'setup' | 'game';
 
 interface QueueSectionProps {
   className?: string;
   gameMode?: GameMode;
-  queuePlayers?: QueuePlayer[];
-  onQueuePlayersChange?: (players: QueuePlayer[]) => void;
-}
-
-interface QueuePlayer {
-  id: number;
-  name: string;
-  score: number;
-  sittingOut: boolean;
+  queuePlayers?: Array<{
+    id: number;
+    name: string;
+    score: number;
+    sittingOut: boolean;
+  }>;
+  onQueuePlayersChange?: (players: QueuePlayerData[]) => void;
+  players?: Player[];
+  onPlayersChanged?: () => void;
 }
 
 export const QueueSection = ({ 
   className = "", 
   gameMode = 'setup',
   queuePlayers = [],
-  onQueuePlayersChange
+  onQueuePlayersChange,
+  players = [],
+  onPlayersChanged
 }: QueueSectionProps) => {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [tempName, setTempName] = useState("");
 
   const maxQueuePositions = 12;
 
-  const updateQueuePlayers = (newPlayers: QueuePlayer[]) => {
+  const updateQueuePlayers = (newPlayers: QueuePlayerData[]) => {
     onQueuePlayersChange?.(newPlayers);
   };
 
   const handleAddPlayer = (index: number) => {
     if (gameMode === 'setup') {
       setEditingIndex(index);
-      setTempName("");
     }
   };
 
-  const handleSavePlayer = () => {
-    if (tempName.trim() && editingIndex !== null) {
-      const newPlayer: QueuePlayer = {
+  const handlePlayerSelect = (playerId: string) => {
+    if (editingIndex !== null && playerId) {
+      const newQueueData: QueuePlayerData = {
         id: editingIndex + 1,
-        name: tempName.trim(),
-        score: 0,
+        playerId,
         sittingOut: false
       };
       
-      const updatedPlayers = [...queuePlayers];
-      const existingIndex = updatedPlayers.findIndex(p => p.id === editingIndex + 1);
+      const currentQueueData: QueuePlayerData[] = queuePlayers.map(qp => {
+        const player = players.find(p => p.name === qp.name);
+        return {
+          id: qp.id,
+          playerId: player?.id || '',
+          sittingOut: qp.sittingOut
+        };
+      });
+      
+      const existingIndex = currentQueueData.findIndex(q => q.id === editingIndex + 1);
       
       if (existingIndex >= 0) {
-        updatedPlayers[existingIndex] = newPlayer;
+        currentQueueData[existingIndex] = newQueueData;
       } else {
-        updatedPlayers.push(newPlayer);
-        updatedPlayers.sort((a, b) => a.id - b.id);
+        currentQueueData.push(newQueueData);
+        currentQueueData.sort((a, b) => a.id - b.id);
       }
       
-      updateQueuePlayers(updatedPlayers);
+      updateQueuePlayers(currentQueueData);
       setEditingIndex(null);
-      setTempName("");
     }
   };
 
   const toggleQueuePlayerSittingOut = (playerId: number) => {
     if (gameMode === 'game') {
-      const updatedPlayers = queuePlayers.map(player => 
-        player.id === playerId 
-          ? { ...player, sittingOut: !player.sittingOut }
-          : player
-      );
-      updateQueuePlayers(updatedPlayers);
+      const currentQueueData: QueuePlayerData[] = queuePlayers.map(qp => {
+        const player = players.find(p => p.name === qp.name);
+        return {
+          id: qp.id,
+          playerId: player?.id || '',
+          sittingOut: qp.id === playerId ? !qp.sittingOut : qp.sittingOut
+        };
+      });
+      updateQueuePlayers(currentQueueData);
     }
   };
 
   const handleCancel = () => {
     setEditingIndex(null);
-    setTempName("");
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSavePlayer();
-    } else if (e.key === 'Escape') {
-      handleCancel();
-    }
   };
 
   const getPlayerAtPosition = (position: number) => {
@@ -95,26 +97,27 @@ export const QueueSection = ({
     const player = getPlayerAtPosition(position);
     const isEditing = editingIndex === position - 1;
 
-    // Editing state (setup mode only)
     if (isEditing && gameMode === 'setup') {
+      const availablePlayers = players.filter(p => 
+        !queuePlayers.some(qp => qp.name === p.name)
+      );
+
       return (
         <div key={position} className="space-y-2">
-          <input
-            type="text"
-            value={tempName}
-            onChange={(e) => setTempName(e.target.value)}
-            onKeyDown={handleKeyPress}
-            placeholder="Enter player name"
-            className="w-full p-3 text-center border-2 border-purple-400 rounded-lg focus:outline-none focus:border-purple-600"
-            autoFocus
+          <div className="text-sm font-semibold text-gray-600 mb-2">
+            Position {position}:
+          </div>
+          <PlayerSelector
+            players={availablePlayers}
+            onPlayerSelect={(playerId) => {
+              handlePlayerSelect(playerId);
+              if (playerId) {
+                onPlayersChanged?.();
+              }
+            }}
+            placeholder="Select player for queue"
           />
-          <div className="flex gap-2 justify-center">
-            <button
-              onClick={handleSavePlayer}
-              className="px-4 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700 transition-colors touch-manipulation"
-            >
-              Save
-            </button>
+          <div className="flex justify-center">
             <button
               onClick={handleCancel}
               className="px-4 py-1 bg-gray-300 text-gray-700 rounded text-sm hover:bg-gray-400 transition-colors touch-manipulation"
@@ -126,10 +129,8 @@ export const QueueSection = ({
       );
     }
 
-    // Player exists
     if (player) {
       if (gameMode === 'game') {
-        // Game mode: show player with score and sitting out toggle
         return (
           <div
             key={position}
@@ -153,7 +154,6 @@ export const QueueSection = ({
           </div>
         );
       } else {
-        // Setup mode: editable player
         return (
           <div
             key={position}
@@ -166,7 +166,6 @@ export const QueueSection = ({
       }
     }
 
-    // Empty slot (setup mode only)
     if (gameMode === 'setup') {
       return (
         <button
@@ -179,29 +178,23 @@ export const QueueSection = ({
       );
     }
 
-    // Game mode with no player - don't render empty slots
     return null;
   };
 
-  // Progressive queue display: show filled slots + one empty slot (setup mode)
-  // In game mode, only show filled positions
   const getPositionsToShow = () => {
     const filledPositions = queuePlayers.sort((a, b) => a.id - b.id);
     const positions = [];
     
-    // Add all filled positions
     for (const player of filledPositions) {
       positions.push(player.id);
     }
     
     if (gameMode === 'setup') {
-      // Add the next empty position (if we haven't reached max)
       const nextEmptyPosition = filledPositions.length + 1;
       if (nextEmptyPosition <= maxQueuePositions) {
         positions.push(nextEmptyPosition);
       }
       
-      // If no players yet, show position 1
       if (positions.length === 0) {
         positions.push(1);
       }
@@ -213,7 +206,6 @@ export const QueueSection = ({
   const positionsToShow = getPositionsToShow();
   const shouldUseColumns = positionsToShow.length >= 7;
 
-  // Split positions into two columns when there are 7+ positions
   const getColumnLayout = () => {
     if (!shouldUseColumns) {
       return { leftColumn: positionsToShow, rightColumn: [] };
@@ -234,7 +226,6 @@ export const QueueSection = ({
       
       <div className="flex-1 overflow-y-auto">
         {shouldUseColumns ? (
-          // Two-column layout for 7+ players
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-3">
               {leftColumn.map(position => renderQueuePosition(position)).filter(Boolean)}
@@ -244,7 +235,6 @@ export const QueueSection = ({
             </div>
           </div>
         ) : (
-          // Single column layout for 6 or fewer players
           <div className="space-y-3">
             {positionsToShow.map(position => renderQueuePosition(position)).filter(Boolean)}
           </div>
