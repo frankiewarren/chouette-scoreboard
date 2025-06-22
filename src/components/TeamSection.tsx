@@ -136,6 +136,7 @@ export const TeamSection = ({
             }}
             placeholder="Select player for team"
             colorScheme="emerald"
+            size="small"
           />
         </div>
       );
