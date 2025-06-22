@@ -1,0 +1,27 @@
+{
+  "name": "Chouette Scoreboard",
+  "short_name": "Chouette",
+  "description": "Track scores and player rotation for backgammon chouette games",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "theme_color": "#475569",
+  "background_color": "#f1f5f9",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "categories": ["games", "sports", "utilities"],
+  "lang": "en"
+}
