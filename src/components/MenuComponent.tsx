@@ -4,13 +4,16 @@ import { ChevronRight, ChevronLeft, Plus, X } from 'lucide-react';
 interface MenuComponentProps {
   onEndChouette: () => void;
   onAddGame: () => void;
+  onExpandedChange?: (expanded: boolean) => void;
 }
 
-export const MenuComponent = ({ onEndChouette, onAddGame }: MenuComponentProps) => {
+export const MenuComponent = ({ onEndChouette, onAddGame, onExpandedChange }: MenuComponentProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleExpanded = () => {
-    setIsExpanded(!isExpanded);
+    const newExpanded = !isExpanded;
+    setIsExpanded(newExpanded);
+    onExpandedChange?.(newExpanded);
   };
 
   const handleEndChouette = () => {

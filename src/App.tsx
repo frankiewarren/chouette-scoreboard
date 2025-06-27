@@ -10,6 +10,7 @@ function App() {
   const [teamData, setTeamData] = useState<TeamPlayerData[]>([]);
   
   const [isScoreModalOpen, setIsScoreModalOpen] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   useEffect(() => {
     loadPlayersAndSession();
@@ -220,10 +221,23 @@ function App() {
   }
 
   return (
-    <div className="h-screen bg-gray-100 p-4 ipad-landscape:p-6">
-      <div className={`h-full max-w-7xl mx-auto transition-all duration-300 ${
-        session.gameMode === 'game' ? 'ml-16' : ''
-      }`}>
+    <div className="h-screen bg-gray-100">
+      <div 
+        className={`h-full transition-all duration-300 ${
+          session.gameMode === 'game' 
+            ? isSidebarExpanded 
+              ? 'ml-64 pl-4 pr-4' 
+              : 'ml-16 pl-4 pr-4'
+            : 'pl-4 pr-4'
+        } ipad-landscape:pl-6 ipad-landscape:pr-6`}
+        style={{
+          width: session.gameMode === 'game' 
+            ? isSidebarExpanded 
+              ? 'calc(100vw - 256px)' 
+              : 'calc(100vw - 64px)'
+            : '100vw'
+        }}
+      >
         <header className="mb-6 relative">
           <button
             onClick={() => {
@@ -321,6 +335,7 @@ function App() {
           <MenuComponent 
             onEndChouette={handleEndChouette} 
             onAddGame={handleGameComplete}
+            onExpandedChange={setIsSidebarExpanded}
           />
         )}
 
