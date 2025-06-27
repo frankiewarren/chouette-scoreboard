@@ -26,7 +26,7 @@ export const MenuComponent = ({ onEndChouette }: MenuComponentProps) => {
     <>
       <button
         onClick={toggleMenu}
-        className="fixed top-4 right-4 z-50 w-12 h-12 bg-white rounded-lg shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors touch-manipulation"
+        className="fixed top-4 left-4 z-50 w-12 h-12 bg-white rounded-lg shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors touch-manipulation"
       >
         <div className="w-6 h-6 flex flex-col justify-center items-center">
           <div className="w-full h-0.5 bg-gray-600 mb-1"></div>
@@ -41,8 +41,8 @@ export const MenuComponent = ({ onEndChouette }: MenuComponentProps) => {
           onClick={handleOutsideClick}
         >
           <div 
-            className={`fixed top-0 right-0 h-full w-80 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
-              isOpen ? 'translate-x-0' : 'translate-x-full'
+            className={`fixed top-0 left-0 h-full w-80 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
+              isOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
           >
             <div className="p-6 pt-20">

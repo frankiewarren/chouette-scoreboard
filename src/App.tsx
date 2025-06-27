@@ -228,7 +228,7 @@ function App() {
               localStorage.clear();
               window.location.reload();
             }}
-            className="absolute top-0 left-0 text-xs text-gray-400 hover:text-gray-600 hover:underline cursor-pointer"
+            className="absolute top-0 right-0 text-xs text-gray-400 hover:text-gray-600 hover:underline cursor-pointer"
           >
             Clear Storage
           </button>
