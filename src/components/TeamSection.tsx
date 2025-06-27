@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import type { Player, TeamPlayerData } from '../types';
 import { PlayerSelector } from './PlayerSelector';
 
