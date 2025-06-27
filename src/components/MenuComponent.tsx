@@ -56,7 +56,9 @@ export const MenuComponent = ({ onEndChouette, onAddGame }: MenuComponentProps) 
                   className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-200 transition-colors touch-manipulation"
                   title="Add Game"
                 >
-                  <Plus className="w-5 h-5 text-gray-600" />
+                  <div className="bg-[#C96442] rounded-md p-2">
+                    <Plus className="w-4 h-4 text-white" />
+                  </div>
                 </button>
               </div>
               {/* Future menu items will be added here */}
@@ -101,8 +103,10 @@ export const MenuComponent = ({ onEndChouette, onAddGame }: MenuComponentProps) 
                 onClick={handleAddGame}
                 className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors touch-manipulation text-left"
               >
-                <Plus className="w-5 h-5 text-gray-600" />
-                <span className="text-gray-700 font-medium">Add Game</span>
+                <div className="bg-[#C96442] rounded-md p-2">
+                  <Plus className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-[#C96442] font-medium">Add Game</span>
               </button>
               {/* Future menu items will be added here */}
             </div>
