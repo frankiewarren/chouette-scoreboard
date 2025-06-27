@@ -223,7 +223,7 @@ function App() {
   return (
     <div className="h-screen bg-gray-100">
       <div 
-        className={`h-full transition-all duration-300 ${
+        className={`h-full bg-gray-100 transition-all duration-300 ${
           session.gameMode === 'game' 
             ? isSidebarExpanded 
               ? 'ml-64 pl-4 pr-4' 
