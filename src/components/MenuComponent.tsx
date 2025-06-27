@@ -31,67 +31,95 @@ export const MenuComponent = ({ onEndChouette, onAddGame }: MenuComponentProps) 
           isExpanded ? 'w-64' : 'w-16'
         }`}
       >
-        {/* Collapsed State: Vertical stack of functional icons */}
+        {/* Collapsed State: Improved UX layout */}
         {!isExpanded && (
-          <div className="flex flex-col items-center pt-4 space-y-4">
-            {/* Add Game Icon */}
-            <button
-              onClick={handleAddGame}
-              className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-200 transition-colors touch-manipulation"
-              title="Add Game"
-            >
-              <Plus className="w-5 h-5 text-gray-600" />
-            </button>
+          <div className="flex flex-col h-full pt-4 px-3">
+            {/* Top: Expand icon */}
+            <div className="flex justify-center">
+              <button
+                onClick={toggleExpanded}
+                className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-200 transition-colors touch-manipulation"
+                title="Expand Menu"
+              >
+                <ChevronRight className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
 
-            {/* Expand Icon */}
-            <button
-              onClick={toggleExpanded}
-              className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-200 transition-colors touch-manipulation"
-              title="Expand Menu"
-            >
-              <ChevronRight className="w-5 h-5 text-gray-600" />
-            </button>
+            {/* Gap */}
+            <div className="mt-2" />
 
-            {/* End Chouette Icon */}
-            <button
-              onClick={handleEndChouette}
-              className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-200 transition-colors touch-manipulation"
-              title="End Chouette"
-            >
-              <X className="w-5 h-5 text-gray-600" />
-            </button>
+            {/* Menu Section */}
+            <div className="space-y-1">
+              <div className="flex justify-center">
+                <button
+                  onClick={handleAddGame}
+                  className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-200 transition-colors touch-manipulation"
+                  title="Add Game"
+                >
+                  <Plus className="w-5 h-5 text-gray-600" />
+                </button>
+              </div>
+              {/* Future menu items will be added here */}
+            </div>
+
+            {/* Spacer to push End to bottom */}
+            <div className="flex-1" />
+
+            {/* Bottom: End Chouette - separated to prevent accidental taps */}
+            <div className="flex justify-center pb-4">
+              <button
+                onClick={handleEndChouette}
+                className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-200 transition-colors touch-manipulation"
+                title="End Chouette"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
           </div>
         )}
 
-        {/* Expanded State: Icon + label rows */}
+        {/* Expanded State: Same layout structure with labels */}
         {isExpanded && (
-          <div className="pt-4 px-3">
-            {/* Add Game Row */}
-            <button
-              onClick={handleAddGame}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors touch-manipulation text-left"
-            >
-              <Plus className="w-5 h-5 text-gray-600" />
-              <span className="text-gray-700 font-medium">Add Game</span>
-            </button>
+          <div className="flex flex-col h-full pt-4 px-3">
+            {/* Top: Collapse */}
+            <div>
+              <button
+                onClick={toggleExpanded}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors touch-manipulation text-left"
+              >
+                <ChevronLeft className="w-5 h-5 text-gray-600" />
+                <span className="text-gray-700 font-medium">Collapse</span>
+              </button>
+            </div>
 
-            {/* Collapse Row */}
-            <button
-              onClick={toggleExpanded}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors touch-manipulation text-left mt-1"
-            >
-              <ChevronLeft className="w-5 h-5 text-gray-600" />
-              <span className="text-gray-700 font-medium">Collapse</span>
-            </button>
+            {/* Gap */}
+            <div className="mt-2" />
 
-            {/* End Chouette Row */}
-            <button
-              onClick={handleEndChouette}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors touch-manipulation text-left mt-1"
-            >
-              <X className="w-5 h-5 text-gray-600" />
-              <span className="text-gray-700 font-medium">End Chouette</span>
-            </button>
+            {/* Menu Section */}
+            <div className="space-y-1">
+              <button
+                onClick={handleAddGame}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors touch-manipulation text-left"
+              >
+                <Plus className="w-5 h-5 text-gray-600" />
+                <span className="text-gray-700 font-medium">Add Game</span>
+              </button>
+              {/* Future menu items will be added here */}
+            </div>
+
+            {/* Spacer to push End to bottom */}
+            <div className="flex-1" />
+
+            {/* Bottom: End Chouette - pinned to bottom */}
+            <div className="pb-4">
+              <button
+                onClick={handleEndChouette}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors touch-manipulation text-left"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+                <span className="text-gray-700 font-medium">End Chouette</span>
+              </button>
+            </div>
           </div>
         )}
       </div>
