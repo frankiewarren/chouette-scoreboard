@@ -86,6 +86,11 @@ export const MenuComponent = ({ onEndChouette, onAddGame, onExpandedChange }: Me
         {/* Expanded State: Same layout structure with labels */}
         {isExpanded && (
           <div className="flex flex-col h-full pt-4 px-3">
+            {/* Branding */}
+            <div className="mb-4 px-3">
+              <h1 className="text-lg font-bold text-gray-800">Chouette</h1>
+            </div>
+
             {/* Top: Collapse */}
             <div>
               <button

@@ -248,9 +248,6 @@ function App() {
           >
             Clear Storage
           </button>
-          <h1 className="text-4xl font-bold text-center text-gray-800">
-            Chouette Scoreboard
-          </h1>
         </header>
         
         <div className="flex gap-6 h-5/6">
