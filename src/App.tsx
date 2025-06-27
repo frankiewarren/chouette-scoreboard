@@ -318,15 +318,10 @@ function App() {
         )}
         
         {session.gameMode === 'game' && (
-          <>
-            <MenuComponent onEndChouette={handleEndChouette} />
-            <button
-              onClick={handleGameComplete}
-              className="fixed bottom-8 right-8 bg-orange-500 hover:bg-orange-600 text-white py-4 px-4 rounded-full shadow-lg transition-colors touch-manipulation text-4xl w-16 h-16 flex items-center justify-center"
-            >
-              +
-            </button>
-          </>
+          <MenuComponent 
+            onEndChouette={handleEndChouette} 
+            onAddGame={handleGameComplete}
+          />
         )}
 
         <ScoreInputModal
