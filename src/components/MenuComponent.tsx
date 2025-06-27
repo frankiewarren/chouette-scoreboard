@@ -5,59 +5,65 @@ interface MenuComponentProps {
 }
 
 export const MenuComponent = ({ onEndChouette }: MenuComponentProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
   };
 
   const handleEndChouette = () => {
     onEndChouette();
-    setIsOpen(false);
+    setIsExpanded(false);
   };
 
-  const handleOutsideClick = (e: React.MouseEvent) => {
+  const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
-      setIsOpen(false);
+      setIsExpanded(false);
     }
   };
 
   return (
     <>
-      <button
-        onClick={toggleMenu}
-        className="fixed top-4 left-4 z-50 w-12 h-12 bg-white rounded-lg shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors touch-manipulation"
-      >
-        <div className="w-6 h-6 flex flex-col justify-center items-center">
-          <div className="w-full h-0.5 bg-gray-600 mb-1"></div>
-          <div className="w-full h-0.5 bg-gray-600 mb-1"></div>
-          <div className="w-full h-0.5 bg-gray-600"></div>
-        </div>
-      </button>
-
-      {isOpen && (
+      {/* Backdrop - only shows when expanded */}
+      {isExpanded && (
         <div 
-          className="fixed inset-0 z-40 bg-black bg-opacity-50"
-          onClick={handleOutsideClick}
+          className="fixed inset-0 z-30 bg-black bg-opacity-50"
+          onClick={handleBackdropClick}
+        />
+      )}
+
+      {/* Always visible sidebar */}
+      <div 
+        className={`fixed top-0 left-0 h-full bg-white shadow-xl transition-all duration-300 ease-in-out z-40 ${
+          isExpanded ? 'w-80' : 'w-16'
+        }`}
+      >
+        {/* Hamburger button - always visible in sidebar */}
+        <button
+          onClick={toggleExpanded}
+          className="w-12 h-12 bg-white rounded-lg shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors touch-manipulation mt-4 mx-auto"
         >
-          <div 
-            className={`fixed top-0 left-0 h-full w-80 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
-              isOpen ? 'translate-x-0' : '-translate-x-full'
-            }`}
-          >
-            <div className="p-6 pt-20">
-              <div className="space-y-4">
-                <button
-                  onClick={handleEndChouette}
-                  className="w-full py-4 px-6 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors touch-manipulation text-lg"
-                >
-                  End Chouette
-                </button>
-              </div>
+          <div className="w-6 h-6 flex flex-col justify-center items-center">
+            <div className="w-full h-0.5 bg-gray-600 mb-1"></div>
+            <div className="w-full h-0.5 bg-gray-600 mb-1"></div>
+            <div className="w-full h-0.5 bg-gray-600"></div>
+          </div>
+        </button>
+
+        {/* Menu content - only visible when expanded */}
+        {isExpanded && (
+          <div className="p-6 pt-8">
+            <div className="space-y-4">
+              <button
+                onClick={handleEndChouette}
+                className="w-full py-4 px-6 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors touch-manipulation text-lg"
+              >
+                End Chouette
+              </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </>
   );
 };

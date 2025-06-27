@@ -221,7 +221,9 @@ function App() {
 
   return (
     <div className="h-screen bg-gray-100 p-4 ipad-landscape:p-6">
-      <div className="h-full max-w-7xl mx-auto">
+      <div className={`h-full max-w-7xl mx-auto transition-all duration-300 ${
+        session.gameMode === 'game' ? 'ml-16' : ''
+      }`}>
         <header className="mb-6 relative">
           <button
             onClick={() => {
