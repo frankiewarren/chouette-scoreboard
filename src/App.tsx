@@ -238,16 +238,7 @@ function App() {
             : '100vw'
         }}
       >
-        <header className="mb-6 relative">
-          <button
-            onClick={() => {
-              localStorage.clear();
-              window.location.reload();
-            }}
-            className="absolute top-0 right-0 text-xs text-gray-400 hover:text-gray-600 hover:underline cursor-pointer"
-          >
-            Clear Storage
-          </button>
+        <header className="mb-6">
         </header>
         
         <div className="flex gap-6 h-5/6">
@@ -307,7 +298,7 @@ function App() {
             </div>
           </div>
           
-          <div className="w-1/2">
+          <div className="w-1/2 flex flex-col">
             <TeamSection 
               className="h-full" 
               gameMode={session.gameMode}
@@ -316,6 +307,19 @@ function App() {
               players={players}
               onPlayersChanged={refreshPlayers}
             />
+            
+            {/* Clear Storage - Development utility */}
+            <div className="mt-4 text-right">
+              <button
+                onClick={() => {
+                  localStorage.clear();
+                  window.location.reload();
+                }}
+                className="text-xs text-gray-400 hover:text-gray-600 hover:underline cursor-pointer"
+              >
+                Clear Storage
+              </button>
+            </div>
           </div>
         </div>
 
