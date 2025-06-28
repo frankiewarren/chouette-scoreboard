@@ -83,22 +83,18 @@ export const MenuComponent = ({ onEndChouette, onAddGame, onExpandedChange }: Me
           </div>
         )}
 
-        {/* Expanded State: Same layout structure with labels */}
+        {/* Expanded State: Claude AI-style header with branding + collapse */}
         {isExpanded && (
           <div className="flex flex-col h-full pt-4 px-3">
-            {/* Branding */}
-            <div className="mb-4 px-3">
+            {/* Header: Chouette branding + collapse icon (Claude AI pattern) */}
+            <div className="flex items-center justify-between mb-4 px-3">
               <h1 className="text-lg font-bold text-gray-800">Chouette</h1>
-            </div>
-
-            {/* Top: Collapse */}
-            <div>
               <button
                 onClick={toggleExpanded}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors touch-manipulation text-left"
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-200 transition-colors touch-manipulation"
+                title="Collapse"
               >
                 <ChevronLeft className="w-5 h-5 text-gray-600" />
-                <span className="text-gray-700 font-medium">Collapse</span>
               </button>
             </div>
 
