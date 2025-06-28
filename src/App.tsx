@@ -298,7 +298,7 @@ function App() {
             </div>
           </div>
           
-          <div className="w-1/2 flex flex-col">
+          <div className="w-1/2">
             <TeamSection 
               className="h-full" 
               gameMode={session.gameMode}
@@ -307,20 +307,20 @@ function App() {
               players={players}
               onPlayersChanged={refreshPlayers}
             />
-            
-            {/* Clear Storage - Development utility */}
-            <div className="mt-4 text-right">
-              <button
-                onClick={() => {
-                  localStorage.clear();
-                  window.location.reload();
-                }}
-                className="text-xs text-gray-400 hover:text-gray-600 hover:underline cursor-pointer"
-              >
-                Clear Storage
-              </button>
-            </div>
           </div>
+        </div>
+
+        {/* Clear Storage - Development utility positioned outside main grid */}
+        <div className="mt-4 text-right">
+          <button
+            onClick={() => {
+              localStorage.clear();
+              window.location.reload();
+            }}
+            className="text-xs text-gray-400 hover:text-gray-600 hover:underline cursor-pointer"
+          >
+            Clear Storage
+          </button>
         </div>
 
         {session.gameMode === 'setup' && canBeginChouette && (
