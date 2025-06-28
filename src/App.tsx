@@ -75,7 +75,7 @@ function App() {
     setIsScoreModalOpen(false);
   };
 
-  const handleScoreModalSubmit = (scores: { [playerName: string]: number }) => {
+  const handleScoreModalSubmit = (scores: { [playerName: string]: number }, finalSittingOutState?: { [playerName: string]: boolean }) => {
     if (!session) return;
 
     const playerIdToScoreMap: { [playerId: string]: number } = {};
@@ -87,46 +87,183 @@ function App() {
       }
     });
 
-    const updatedSession = sessionService.updateScores(session, playerIdToScoreMap);
+    // Apply absolute sitting out state - CRITICAL: This must happen before rotation logic
+    const sessionWithSittingOutChanges = { ...session };
+    console.log('Original session sitting out:', session.playersSittingOut);
+    console.log('Final sitting out state from modal:', finalSittingOutState);
+    
+    if (finalSittingOutState && Object.keys(finalSittingOutState).length > 0) {
+      // Apply absolute sitting out state for all players
+      sessionWithSittingOutChanges.playersSittingOut = { ...session.playersSittingOut };
+      
+      Object.entries(finalSittingOutState).forEach(([playerName, isSittingOut]) => {
+        const player = players.find(p => p.name === playerName);
+        if (player) {
+          console.log(`Setting ${playerName} (${player.id}) sitting out to: ${isSittingOut}`);
+          sessionWithSittingOutChanges.playersSittingOut[player.id] = isSittingOut;
+        }
+      });
+      
+      console.log('Session sitting out after applying absolute state:', sessionWithSittingOutChanges.playersSittingOut);
+      
+      // Save the session with sitting out state
+      sessionService.updateSession(sessionWithSittingOutChanges);
+    }
 
+    const updatedSession = sessionService.updateScores(sessionWithSittingOutChanges, playerIdToScoreMap);
+
+    console.log('=== ROTATION DEBUG START ===');
+    console.log('Updated session after scores:', updatedSession);
+    console.log('Players sitting out:', updatedSession.playersSittingOut);
+    console.log('Current team player IDs:', updatedSession.teamPlayerIds);
+    
     const boxPlayer = players.find(p => p.id === updatedSession.boxPlayerId);
     const teamCaptainPlayer = players.find(p => p.id === updatedSession.teamCaptainPlayerId);
+    
+    console.log('Box player:', boxPlayer);
+    console.log('Team Captain player:', teamCaptainPlayer);
     
     if (!boxPlayer || !teamCaptainPlayer) return;
 
     const boxScore = playerIdToScoreMap[boxPlayer.id] || 0;
     const teamCaptainScore = playerIdToScoreMap[teamCaptainPlayer.id] || 0;
     
+    console.log('Scores - Box:', boxScore, 'Team Captain:', teamCaptainScore);
+    console.log('Player ID to Score Map:', playerIdToScoreMap);
+    
     let newBoxPlayerId = updatedSession.boxPlayerId!;
     let newTeamCaptainPlayerId = updatedSession.teamCaptainPlayerId!;
     let newTeamPlayerIds = [...updatedSession.teamPlayerIds];
 
+    // Separate active and sitting out players while preserving original positions
     const activeTeamPlayerIds = newTeamPlayerIds.filter(playerId => 
       !updatedSession.playersSittingOut[playerId]
     );
-    const inactiveTeamPlayerIds = newTeamPlayerIds.filter(playerId => 
-      updatedSession.playersSittingOut[playerId]
-    );
+    
+    console.log('Original team player IDs:', newTeamPlayerIds);
+    console.log('Active team player IDs:', activeTeamPlayerIds);
+    
+    // Debug: Show detailed breakdown of each player's sitting out status
+    newTeamPlayerIds.forEach((playerId, index) => {
+      const player = players.find(p => p.id === playerId);
+      const isSittingOut = updatedSession.playersSittingOut[playerId];
+      console.log(`Team #${index + 1}: ${player?.name} (ID: ${playerId}) - Sitting out: ${isSittingOut}`);
+    });
+    
+    // Create a map of original positions for sitting out players
+    const sittingOutPositions = new Map<string, number>();
+    newTeamPlayerIds.forEach((playerId, index) => {
+      if (updatedSession.playersSittingOut[playerId]) {
+        sittingOutPositions.set(playerId, index);
+        console.log(`Preserving position: ${players.find(p => p.id === playerId)?.name} stays at Team #${index + 1}`);
+      }
+    });
+    
+    console.log('Sitting out positions map:', sittingOutPositions);
 
     if (boxScore > 0) {
+      console.log('--- BOX WON SCENARIO ---');
+      // Box won - Team Captain becomes Box, first active team player becomes Captain
       if (activeTeamPlayerIds.length > 0) {
         const newTeamCaptainId = activeTeamPlayerIds[0];
+        console.log('New Team Captain will be:', players.find(p => p.id === newTeamCaptainId)?.name);
         newTeamCaptainPlayerId = newTeamCaptainId;
         
-        newTeamPlayerIds = activeTeamPlayerIds.slice(1)
-          .concat([updatedSession.teamCaptainPlayerId!])
-          .concat(inactiveTeamPlayerIds);
+        // Simple approach: rebuild the entire team list explicitly
+        newTeamPlayerIds = rebuildTeamListSimple(
+          activeTeamPlayerIds.slice(1), // remaining active team players
+          [updatedSession.teamCaptainPlayerId!], // old captain goes to team
+          sittingOutPositions
+        );
+        
+        console.log('Final team IDs after Box won:', newTeamPlayerIds.map(id => 
+          players.find(p => p.id === id)?.name
+        ));
       }
     } else if (teamCaptainScore > 0) {
+      console.log('--- TEAM WON SCENARIO ---');
+      // Team won - Team Captain becomes Box, first active team member becomes Captain
       if (activeTeamPlayerIds.length > 0) {
+        console.log('Old Captain becomes new Box:', teamCaptainPlayer.name);
         newBoxPlayerId = updatedSession.teamCaptainPlayerId!;
-        newTeamCaptainPlayerId = activeTeamPlayerIds[0];
         
-        newTeamPlayerIds = activeTeamPlayerIds.slice(1)
-          .concat([updatedSession.boxPlayerId!])
-          .concat(inactiveTeamPlayerIds);
+        const newTeamCaptainId = activeTeamPlayerIds[0];
+        console.log('New Team Captain will be:', players.find(p => p.id === newTeamCaptainId)?.name);
+        newTeamCaptainPlayerId = newTeamCaptainId;
+        
+        // Simple approach: rebuild the entire team list explicitly
+        newTeamPlayerIds = rebuildTeamListSimple(
+          activeTeamPlayerIds.slice(1), // remaining active team players after captain
+          [updatedSession.boxPlayerId!], // old box goes to team
+          sittingOutPositions
+        );
+        
+        console.log('Final team IDs after Team won:', newTeamPlayerIds.map(id => 
+          players.find(p => p.id === id)?.name
+        ));
       }
+    } else {
+      console.log('--- NO ROTATION (TIE OR OTHER) ---');
     }
+
+    // Simple helper function that explicitly handles sitting out players
+    function rebuildTeamListSimple(
+      remainingActivePlayers: string[],
+      newActivePlayersToAdd: string[],
+      sittingOutPositions: Map<string, number>
+    ): string[] {
+      console.log('--- SIMPLE REBUILD START ---');
+      console.log('Remaining active players:', remainingActivePlayers.map(id => players.find(p => p.id === id)?.name));
+      console.log('New active players to add:', newActivePlayersToAdd.map(id => players.find(p => p.id === id)?.name));
+      
+      // Start with the original team structure size
+      const originalLength = updatedSession.teamPlayerIds.length;
+      const result: string[] = [];
+      
+      // Build the active player queue: remaining + new additions
+      const activePlayerQueue = [...remainingActivePlayers, ...newActivePlayersToAdd];
+      console.log('Active player queue:', activePlayerQueue.map(id => players.find(p => p.id === id)?.name));
+      
+      let activeIndex = 0;
+      
+      // Go through each original position and either place sitting out player or next active player
+      for (let position = 0; position < originalLength; position++) {
+        // Check if this position has a sitting out player
+        const sittingOutPlayerId = Array.from(sittingOutPositions.entries()).find(([, pos]) => pos === position)?.[0];
+        
+        if (sittingOutPlayerId) {
+          // Keep the sitting out player in their original position
+          result[position] = sittingOutPlayerId;
+          console.log(`Position ${position}: Keeping sitting out player ${players.find(p => p.id === sittingOutPlayerId)?.name}`);
+        } else if (activeIndex < activePlayerQueue.length) {
+          // Fill with next active player
+          result[position] = activePlayerQueue[activeIndex];
+          console.log(`Position ${position}: Filling with active player ${players.find(p => p.id === activePlayerQueue[activeIndex])?.name}`);
+          activeIndex++;
+        }
+      }
+      
+      // Add any remaining active players to the end
+      while (activeIndex < activePlayerQueue.length) {
+        result.push(activePlayerQueue[activeIndex]);
+        console.log(`Appending: ${players.find(p => p.id === activePlayerQueue[activeIndex])?.name}`);
+        activeIndex++;
+      }
+      
+      const finalResult = result.filter(id => id);
+      console.log('Final simple rebuild result:', finalResult.map((id, index) => 
+        `Team #${index + 1}: ${players.find(p => p.id === id)?.name}`
+      ));
+      console.log('--- SIMPLE REBUILD END ---');
+      return finalResult;
+    }
+
+    console.log('=== FINAL POSITIONS ===');
+    console.log('New Box Player ID:', newBoxPlayerId, '- Name:', players.find(p => p.id === newBoxPlayerId)?.name);
+    console.log('New Team Captain ID:', newTeamCaptainPlayerId, '- Name:', players.find(p => p.id === newTeamCaptainPlayerId)?.name);
+    console.log('New Team Player IDs:', newTeamPlayerIds.map((id, index) => 
+      `Team #${index + 1}: ${players.find(p => p.id === id)?.name} (ID: ${id})`
+    ));
 
     const finalSession = sessionService.updatePlayerPositions(
       updatedSession, 
@@ -134,6 +271,9 @@ function App() {
       newTeamCaptainPlayerId, 
       newTeamPlayerIds
     );
+    
+    console.log('Final session sitting out status:', finalSession.playersSittingOut);
+    console.log('=== ROTATION DEBUG END ===');
     
     setSession(finalSession);
     updateTeamData(finalSession);
@@ -152,15 +292,6 @@ function App() {
     refreshPlayers();
   };
 
-  const toggleSittingOut = (playerType: 'box' | 'teamCaptain') => {
-    if (!session) return;
-
-    const playerId = playerType === 'box' ? session.boxPlayerId : session.teamCaptainPlayerId;
-    if (!playerId) return;
-
-    const updatedSession = sessionService.toggleSittingOut(session, playerId);
-    setSession(updatedSession);
-  };
 
   const handleBoxPlayerSelect = (playerId: string) => {
     if (!session) return;
@@ -268,7 +399,7 @@ function App() {
                   className="h-full" 
                   gameMode={session.gameMode}
                   player={getPlayerForDisplay(session.boxPlayerId)}
-                  onToggleSittingOut={() => toggleSittingOut('box')}
+                  onToggleSittingOut={undefined}
                 />
               )}
             </div>
@@ -298,7 +429,7 @@ function App() {
                   className="h-full" 
                   gameMode={session.gameMode}
                   player={getPlayerForDisplay(session.teamCaptainPlayerId)}
-                  onToggleSittingOut={() => toggleSittingOut('teamCaptain')}
+                  onToggleSittingOut={undefined}
                 />
               )}
             </div>

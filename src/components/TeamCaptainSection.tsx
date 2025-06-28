@@ -62,11 +62,15 @@ export const TeamCaptainSection = ({
           <h2 className="text-sm font-medium text-gray-400 mb-3">TEAM CAPTAIN</h2>
           
           <div 
-            onClick={onToggleSittingOut}
-            className={`w-full rounded-lg p-8 text-2xl font-bold cursor-pointer transition-colors touch-manipulation ${
-              player.sittingOut 
-                ? "bg-gray-400 text-gray-600" 
-                : "bg-emerald-700 text-white hover:bg-emerald-800"
+            onClick={onToggleSittingOut || undefined}
+            className={`w-full rounded-lg p-8 text-2xl font-bold transition-colors touch-manipulation ${
+              onToggleSittingOut 
+                ? "cursor-pointer" + (player.sittingOut 
+                    ? " bg-gray-400 text-gray-600" 
+                    : " bg-emerald-700 text-white hover:bg-emerald-800")
+                : player.sittingOut
+                  ? " bg-gray-400 text-gray-600 cursor-not-allowed"
+                  : " bg-emerald-700 text-white cursor-default"
             }`}
           >
             <div>{player.name}</div>

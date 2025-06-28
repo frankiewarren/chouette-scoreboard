@@ -19,7 +19,7 @@ interface ScoreInputModalProps {
   captainPlayer: Player | null;
   queuePlayers: QueuePlayer[];
   onCancel: () => void;
-  onSubmit: (scores: { [playerName: string]: number }) => void;
+  onSubmit: (scores: { [playerName: string]: number }, finalSittingOutState?: { [playerName: string]: boolean }) => void;
 }
 
 // Doubling cube progression values including gammons (2x) and backgammons (3x)
@@ -38,22 +38,32 @@ export const ScoreInputModal = ({
   onSubmit
 }: ScoreInputModalProps) => {
   const [scores, setScores] = useState<{ [playerName: string]: number }>({});
+  const [sittingOut, setSittingOut] = useState<{ [playerName: string]: boolean }>({});
 
-  // Get team players (captain + queue players) excluding Box player
+  // Get all team players (captain + queue players) including sitting out players
   const getTeamPlayers = () => {
     const players = [];
     
     // Team Captain first
-    if (captainPlayer && !captainPlayer.sittingOut) {
-      players.push({ name: captainPlayer.name, role: 'Team Captain' });
+    if (captainPlayer) {
+      players.push({ 
+        name: captainPlayer.name, 
+        role: 'Team Captain',
+        initialSittingOut: captainPlayer.sittingOut,
+        canToggleSittingOut: false // Captain cannot sit out
+      });
     }
     
-    // Team players in queue order
+    // Team players in queue order (include all players)
     queuePlayers
-      .filter(player => !player.sittingOut)
       .sort((a, b) => a.id - b.id) // Ensure queue order
       .forEach(player => {
-        players.push({ name: player.name, role: `Team #${player.id}` });
+        players.push({ 
+          name: player.name, 
+          role: `Team #${player.id}`,
+          initialSittingOut: player.sittingOut,
+          canToggleSittingOut: true // Team players can sit out
+        });
       });
     
     return players;
@@ -61,19 +71,28 @@ export const ScoreInputModal = ({
 
   const teamPlayers = getTeamPlayers();
 
-  // Initialize scores when modal opens
+  // Initialize scores and sitting out state when modal opens
   useEffect(() => {
     if (isOpen) {
       const initialScores: { [playerName: string]: number } = {};
+      const initialSittingOut: { [playerName: string]: boolean } = {};
+      
       teamPlayers.forEach(player => {
-        initialScores[player.name] = DEFAULT_VALUE;
+        // Sitting out players have score locked to 0, active players start with default
+        initialScores[player.name] = player.initialSittingOut ? 0 : DEFAULT_VALUE;
+        initialSittingOut[player.name] = player.initialSittingOut;
       });
+      
       setScores(initialScores);
+      setSittingOut(initialSittingOut);
     }
   }, [isOpen, teamPlayers.length]);
 
-  // Calculate Box score (negative sum of all team scores)
-  const teamScoreSum = Object.values(scores).reduce((sum, score) => sum + score, 0);
+  // Calculate Box score (negative sum of active team players' scores only)
+  const teamScoreSum = Object.entries(scores).reduce((sum, [playerName, score]) => {
+    // Only include scores from players who are not sitting out
+    return sittingOut[playerName] ? sum : sum + score;
+  }, 0);
   const boxScore = -teamScoreSum;
 
   // Doubling cube navigation functions
@@ -89,7 +108,33 @@ export const ScoreInputModal = ({
     return currentIndex > 0 ? CUBE_VALUES[currentIndex - 1] : currentValue;
   };
 
+  const toggleSittingOut = (playerName: string) => {
+    setSittingOut(prev => {
+      const newSittingOut = !prev[playerName];
+      // If player is now sitting out, set their score to 0
+      if (newSittingOut) {
+        setScores(prevScores => ({
+          ...prevScores,
+          [playerName]: 0
+        }));
+      } else {
+        // If player is no longer sitting out, set to default value
+        setScores(prevScores => ({
+          ...prevScores,
+          [playerName]: DEFAULT_VALUE
+        }));
+      }
+      return {
+        ...prev,
+        [playerName]: newSittingOut
+      };
+    });
+  };
+
   const incrementScore = (playerName: string) => {
+    // Don't allow score changes for sitting out players
+    if (sittingOut[playerName]) return;
+    
     setScores(prev => ({
       ...prev,
       [playerName]: moveToNextHigherValue(prev[playerName] || DEFAULT_VALUE)
@@ -97,6 +142,9 @@ export const ScoreInputModal = ({
   };
 
   const decrementScore = (playerName: string) => {
+    // Don't allow score changes for sitting out players
+    if (sittingOut[playerName]) return;
+    
     setScores(prev => ({
       ...prev,
       [playerName]: moveToNextLowerValue(prev[playerName] || DEFAULT_VALUE)
@@ -113,12 +161,31 @@ export const ScoreInputModal = ({
         ...scores,
         [boxPlayer.name]: boxScore
       };
-      onSubmit(allScores);
+      
+      // Send absolute sitting out state for all players (not just changes)
+      const finalSittingOutState: { [playerName: string]: boolean } = {};
+      console.log('=== SCORE MODAL SUBMIT DEBUG ===');
+      teamPlayers.forEach(player => {
+        console.log(`${player.name}: initial=${player.initialSittingOut}, current=${sittingOut[player.name]}`);
+        finalSittingOutState[player.name] = sittingOut[player.name];
+        
+        if (sittingOut[player.name] !== player.initialSittingOut) {
+          console.log(`Change detected for ${player.name}: ${player.initialSittingOut} → ${sittingOut[player.name]}`);
+        } else {
+          console.log(`No change for ${player.name}: staying ${sittingOut[player.name]}`);
+        }
+      });
+      
+      console.log('Final sitting out state to submit:', finalSittingOutState);
+      console.log('=== SCORE MODAL SUBMIT DEBUG END ===');
+      
+      onSubmit(allScores, finalSittingOutState);
     }
   };
 
   const handleCancel = () => {
     setScores({});
+    setSittingOut({});
     onCancel();
   };
 
@@ -147,38 +214,70 @@ export const ScoreInputModal = ({
               <div className="space-y-6 mb-8">
                 {teamPlayers.map((player) => {
                   const playerScore = scores[player.name] || DEFAULT_VALUE;
+                  const isPlayerSittingOut = sittingOut[player.name];
+                  
                   return (
                     <div key={player.name} className="flex items-center justify-between">
                       <div className="flex-1 pr-4">
-                        <div className="font-semibold text-lg">{player.name}</div>
-                        <div className="text-sm text-gray-500">{player.role}</div>
+                        <button
+                          onClick={() => player.canToggleSittingOut && toggleSittingOut(player.name)}
+                          disabled={!player.canToggleSittingOut}
+                          className={`text-left w-full ${player.canToggleSittingOut ? 'cursor-pointer hover:bg-gray-50 rounded p-1 -m-1' : 'cursor-not-allowed'}`}
+                          type="button"
+                        >
+                          <div className={`font-semibold text-lg ${isPlayerSittingOut ? 'text-gray-400' : 'text-gray-800'}`}>
+                            {player.name}
+                            {!player.canToggleSittingOut && isPlayerSittingOut && ' (cannot sit out)'}
+                          </div>
+                          <div className={`text-sm ${isPlayerSittingOut ? 'text-gray-400' : 'text-gray-500'}`}>
+                            {isPlayerSittingOut ? 'Sitting out' : player.role}
+                          </div>
+                        </button>
                       </div>
                       
-                      {/* Doubling cube controls */}
+                      {/* Score controls - disabled for sitting out players */}
                       <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => decrementScore(player.name)}
-                          disabled={!canDecrement(playerScore)}
-                          className="w-12 h-12 bg-red-500 hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg font-bold text-xl flex items-center justify-center touch-manipulation transition-colors"
-                          type="button"
-                        >
-                          −
-                        </button>
-                        
-                        <div className="w-20 text-center">
-                          <div className="text-2xl font-bold text-gray-800">
-                            {playerScore > 0 ? `+${playerScore}` : playerScore}
-                          </div>
-                        </div>
-                        
-                        <button
-                          onClick={() => incrementScore(player.name)}
-                          disabled={!canIncrement(playerScore)}
-                          className="w-12 h-12 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg font-bold text-xl flex items-center justify-center touch-manipulation transition-colors"
-                          type="button"
-                        >
-                          +
-                        </button>
+                        {isPlayerSittingOut ? (
+                          // Locked state for sitting out players
+                          <>
+                            <div className="w-12 h-12 bg-gray-200 text-gray-400 rounded-lg font-bold text-xl flex items-center justify-center">
+                              −
+                            </div>
+                            <div className="w-20 text-center">
+                              <div className="text-2xl font-bold text-gray-400">0</div>
+                            </div>
+                            <div className="w-12 h-12 bg-gray-200 text-gray-400 rounded-lg font-bold text-xl flex items-center justify-center">
+                              +
+                            </div>
+                          </>
+                        ) : (
+                          // Active controls for playing players
+                          <>
+                            <button
+                              onClick={() => decrementScore(player.name)}
+                              disabled={!canDecrement(playerScore)}
+                              className="w-12 h-12 bg-red-500 hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg font-bold text-xl flex items-center justify-center touch-manipulation transition-colors"
+                              type="button"
+                            >
+                              −
+                            </button>
+                            
+                            <div className="w-20 text-center">
+                              <div className="text-2xl font-bold text-gray-800">
+                                {playerScore > 0 ? `+${playerScore}` : playerScore}
+                              </div>
+                            </div>
+                            
+                            <button
+                              onClick={() => incrementScore(player.name)}
+                              disabled={!canIncrement(playerScore)}
+                              className="w-12 h-12 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg font-bold text-xl flex items-center justify-center touch-manipulation transition-colors"
+                              type="button"
+                            >
+                              +
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
                   );
@@ -191,7 +290,9 @@ export const ScoreInputModal = ({
                   <div className="flex items-center justify-between bg-slate-50 p-4 rounded-lg">
                     <div className="flex-1">
                       <div className="font-semibold text-lg">{boxPlayer.name}</div>
-                      <div className="text-sm text-gray-500">Box</div>
+                      <div className="text-sm text-gray-500">
+                        Box {boxPlayer.sittingOut ? '(cannot sit out)' : ''}
+                      </div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-slate-700">
