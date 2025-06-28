@@ -1,29 +1,49 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronRight, ChevronLeft, Plus, X } from 'lucide-react';
 
 interface MenuComponentProps {
   onEndChouette: () => void;
   onAddGame: () => void;
   onExpandedChange?: (expanded: boolean) => void;
+  isExpanded?: boolean;
 }
 
-export const MenuComponent = ({ onEndChouette, onAddGame, onExpandedChange }: MenuComponentProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+export const MenuComponent = ({ 
+  onEndChouette, 
+  onAddGame, 
+  onExpandedChange, 
+  isExpanded: externalIsExpanded
+}: MenuComponentProps) => {
+  const [internalIsExpanded, setInternalIsExpanded] = useState(false);
+  
+  // Use external state if provided, otherwise use internal state
+  const isExpanded = externalIsExpanded !== undefined ? externalIsExpanded : internalIsExpanded;
+  
+  // Sync internal state with external state when external state changes
+  useEffect(() => {
+    if (externalIsExpanded !== undefined) {
+      setInternalIsExpanded(externalIsExpanded);
+    }
+  }, [externalIsExpanded]);
 
   const toggleExpanded = () => {
     const newExpanded = !isExpanded;
-    setIsExpanded(newExpanded);
-    onExpandedChange?.(newExpanded);
+    if (externalIsExpanded !== undefined) {
+      // If external state is controlled, use the callback to update it
+      onExpandedChange?.(newExpanded);
+    } else {
+      // If internal state, update it directly
+      setInternalIsExpanded(newExpanded);
+      onExpandedChange?.(newExpanded);
+    }
   };
 
   const handleEndChouette = () => {
     onEndChouette();
-    setIsExpanded(false);
   };
 
   const handleAddGame = () => {
     onAddGame();
-    setIsExpanded(false);
   };
 
   return (

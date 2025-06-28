@@ -11,6 +11,7 @@ function App() {
   
   const [isScoreModalOpen, setIsScoreModalOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [isMenuExpanded, setIsMenuExpanded] = useState(false);
 
   useEffect(() => {
     loadPlayersAndSession();
@@ -63,6 +64,11 @@ function App() {
 
   const handleGameComplete = () => {
     setIsScoreModalOpen(true);
+  };
+
+  const handleMenuExpandedChange = (expanded: boolean) => {
+    setIsMenuExpanded(expanded);
+    setIsSidebarExpanded(expanded);
   };
 
   const handleScoreModalCancel = () => {
@@ -336,7 +342,8 @@ function App() {
           <MenuComponent 
             onEndChouette={handleEndChouette} 
             onAddGame={handleGameComplete}
-            onExpandedChange={setIsSidebarExpanded}
+            onExpandedChange={handleMenuExpandedChange}
+            isExpanded={isMenuExpanded}
           />
         )}
 
