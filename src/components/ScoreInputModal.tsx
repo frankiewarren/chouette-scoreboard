@@ -86,7 +86,7 @@ export const ScoreInputModal = ({
       setScores(initialScores);
       setSittingOut(initialSittingOut);
     }
-  }, [isOpen, teamPlayers.length]);
+  }, [isOpen, teamPlayers]);
 
   // Calculate Box score (negative sum of active team players' scores only)
   const teamScoreSum = Object.entries(scores).reduce((sum, [playerName, score]) => {

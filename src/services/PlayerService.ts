@@ -13,7 +13,7 @@ class PlayerService {
       if (!stored) return [];
       
       const players = JSON.parse(stored);
-      return players.map((p: any) => ({
+      return players.map((p: Omit<Player, 'createdAt'> & { createdAt: string }) => ({
         ...p,
         createdAt: new Date(p.createdAt)
       }));

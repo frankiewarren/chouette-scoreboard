@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { BoxSection, TeamCaptainSection, TeamSection, ScoreInputModal, PlayerSelector, MenuComponent } from './components';
 import type { Player, GameSession, TeamPlayerData } from './types';
 import { playerService } from './services/PlayerService';
@@ -13,11 +13,7 @@ function App() {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
 
-  useEffect(() => {
-    loadPlayersAndSession();
-  }, []);
-
-  const loadPlayersAndSession = () => {
+  const loadPlayersAndSession = useCallback(() => {
     const allPlayers = playerService.getAllPlayers();
     setPlayers(allPlayers);
 
@@ -30,7 +26,11 @@ function App() {
     if (currentSession.gameMode === 'game') {
       updateTeamData(currentSession);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadPlayersAndSession();
+  }, [loadPlayersAndSession]);
 
   const updateTeamData = (currentSession: GameSession) => {
     const teamData: TeamPlayerData[] = currentSession.teamPlayerIds.map((playerId, index) => ({
