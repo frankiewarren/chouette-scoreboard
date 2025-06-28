@@ -162,22 +162,11 @@ export const ScoreInputModal = ({
         [boxPlayer.name]: boxScore
       };
       
-      // Send absolute sitting out state for all players (not just changes)
+      // Send absolute sitting out state for all players
       const finalSittingOutState: { [playerName: string]: boolean } = {};
-      console.log('=== SCORE MODAL SUBMIT DEBUG ===');
       teamPlayers.forEach(player => {
-        console.log(`${player.name}: initial=${player.initialSittingOut}, current=${sittingOut[player.name]}`);
         finalSittingOutState[player.name] = sittingOut[player.name];
-        
-        if (sittingOut[player.name] !== player.initialSittingOut) {
-          console.log(`Change detected for ${player.name}: ${player.initialSittingOut} → ${sittingOut[player.name]}`);
-        } else {
-          console.log(`No change for ${player.name}: staying ${sittingOut[player.name]}`);
-        }
       });
-      
-      console.log('Final sitting out state to submit:', finalSittingOutState);
-      console.log('=== SCORE MODAL SUBMIT DEBUG END ===');
       
       onSubmit(allScores, finalSittingOutState);
     }
