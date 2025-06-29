@@ -78,15 +78,17 @@ export const ScoreInputModal = ({
       const initialSittingOut: { [playerName: string]: boolean } = {};
       
       teamPlayers.forEach(player => {
+        const inherited = player.initialSittingOut || false;
         // Sitting out players have score locked to 0, active players start with default
-        initialScores[player.name] = player.initialSittingOut ? 0 : DEFAULT_VALUE;
-        initialSittingOut[player.name] = player.initialSittingOut;
+        initialScores[player.name] = inherited ? 0 : DEFAULT_VALUE;
+        initialSittingOut[player.name] = inherited;
       });
       
       setScores(initialScores);
       setSittingOut(initialSittingOut);
     }
-  }, [isOpen, teamPlayers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   // Calculate Box score (negative sum of active team players' scores only)
   const teamScoreSum = Object.entries(scores).reduce((sum, [playerName, score]) => {
@@ -109,6 +111,11 @@ export const ScoreInputModal = ({
   };
 
   const toggleSittingOut = (playerName: string) => {
+    const player = teamPlayers.find(p => p.name === playerName);
+    if (!player || !player.canToggleSittingOut) {
+      return; // Don't allow toggle for Box and Captain
+    }
+    
     setSittingOut(prev => {
       const newSittingOut = !prev[playerName];
       // If player is now sitting out, set their score to 0
@@ -209,7 +216,7 @@ export const ScoreInputModal = ({
                     <div key={player.name} className="flex items-center justify-between">
                       <div className="flex-1 pr-4">
                         <button
-                          onClick={() => player.canToggleSittingOut && toggleSittingOut(player.name)}
+                          onClick={() => toggleSittingOut(player.name)}
                           disabled={!player.canToggleSittingOut}
                           className={`text-left w-full ${player.canToggleSittingOut ? 'cursor-pointer hover:bg-gray-50 rounded p-1 -m-1' : 'cursor-not-allowed'}`}
                           type="button"
