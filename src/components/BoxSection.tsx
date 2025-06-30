@@ -62,11 +62,15 @@ export const BoxSection = ({
           <h2 className="text-sm font-medium text-gray-400 mb-3">BOX</h2>
           
           <div 
-            onClick={onToggleSittingOut}
-            className={`w-full rounded-lg p-8 text-2xl font-bold cursor-pointer transition-colors touch-manipulation ${
-              player.sittingOut 
-                ? "bg-gray-400 text-gray-600" 
-                : "bg-slate-600 text-white hover:bg-slate-700"
+            onClick={onToggleSittingOut || undefined}
+            className={`w-full rounded-lg p-8 text-2xl font-bold transition-colors touch-manipulation ${
+              onToggleSittingOut 
+                ? "cursor-pointer" + (player.sittingOut 
+                    ? " bg-gray-400 text-gray-600" 
+                    : " bg-slate-600 text-white hover:bg-slate-700")
+                : player.sittingOut
+                  ? " bg-gray-400 text-gray-600 cursor-not-allowed"
+                  : " bg-slate-600 text-white cursor-default"
             }`}
           >
             <div>{player.name}</div>

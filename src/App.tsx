@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { BoxSection, TeamCaptainSection, TeamSection, ScoreInputModal, PlayerSelector, MenuComponent } from './components';
 import type { Player, GameSession, TeamPlayerData } from './types';
 import { playerService } from './services/PlayerService';
@@ -11,12 +11,9 @@ function App() {
   
   const [isScoreModalOpen, setIsScoreModalOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [isMenuExpanded, setIsMenuExpanded] = useState(false);
 
-  useEffect(() => {
-    loadPlayersAndSession();
-  }, []);
-
-  const loadPlayersAndSession = () => {
+  const loadPlayersAndSession = useCallback(() => {
     const allPlayers = playerService.getAllPlayers();
     setPlayers(allPlayers);
 
@@ -29,7 +26,11 @@ function App() {
     if (currentSession.gameMode === 'game') {
       updateTeamData(currentSession);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadPlayersAndSession();
+  }, [loadPlayersAndSession]);
 
   const updateTeamData = (currentSession: GameSession) => {
     const teamData: TeamPlayerData[] = currentSession.teamPlayerIds.map((playerId, index) => ({
@@ -65,11 +66,16 @@ function App() {
     setIsScoreModalOpen(true);
   };
 
+  const handleMenuExpandedChange = (expanded: boolean) => {
+    setIsMenuExpanded(expanded);
+    setIsSidebarExpanded(expanded);
+  };
+
   const handleScoreModalCancel = () => {
     setIsScoreModalOpen(false);
   };
 
-  const handleScoreModalSubmit = (scores: { [playerName: string]: number }) => {
+  const handleScoreModalSubmit = (scores: { [playerName: string]: number }, finalSittingOutState?: { [playerName: string]: boolean }) => {
     if (!session) return;
 
     const playerIdToScoreMap: { [playerId: string]: number } = {};
@@ -81,7 +87,25 @@ function App() {
       }
     });
 
-    const updatedSession = sessionService.updateScores(session, playerIdToScoreMap);
+    // Apply absolute sitting out state - CRITICAL: This must happen before rotation logic
+    const sessionWithSittingOutChanges = { ...session };
+    
+    if (finalSittingOutState && Object.keys(finalSittingOutState).length > 0) {
+      // Apply absolute sitting out state for all players
+      sessionWithSittingOutChanges.playersSittingOut = { ...session.playersSittingOut };
+      
+      Object.entries(finalSittingOutState).forEach(([playerName, isSittingOut]) => {
+        const player = players.find(p => p.name === playerName);
+        if (player) {
+          sessionWithSittingOutChanges.playersSittingOut[player.id] = isSittingOut;
+        }
+      });
+      
+      // Save the session with sitting out state
+      sessionService.updateSession(sessionWithSittingOutChanges);
+    }
+
+    const updatedSession = sessionService.updateScores(sessionWithSittingOutChanges, playerIdToScoreMap);
 
     const boxPlayer = players.find(p => p.id === updatedSession.boxPlayerId);
     const teamCaptainPlayer = players.find(p => p.id === updatedSession.teamCaptainPlayerId);
@@ -95,31 +119,84 @@ function App() {
     let newTeamCaptainPlayerId = updatedSession.teamCaptainPlayerId!;
     let newTeamPlayerIds = [...updatedSession.teamPlayerIds];
 
+    // Separate active and sitting out players while preserving original positions
     const activeTeamPlayerIds = newTeamPlayerIds.filter(playerId => 
       !updatedSession.playersSittingOut[playerId]
     );
-    const inactiveTeamPlayerIds = newTeamPlayerIds.filter(playerId => 
-      updatedSession.playersSittingOut[playerId]
-    );
+    
+    // Create a map of original positions for sitting out players
+    const sittingOutPositions = new Map<string, number>();
+    newTeamPlayerIds.forEach((playerId, index) => {
+      if (updatedSession.playersSittingOut[playerId]) {
+        sittingOutPositions.set(playerId, index);
+      }
+    });
 
     if (boxScore > 0) {
+      // Box won - Team Captain becomes Box, first active team player becomes Captain
       if (activeTeamPlayerIds.length > 0) {
         const newTeamCaptainId = activeTeamPlayerIds[0];
         newTeamCaptainPlayerId = newTeamCaptainId;
         
-        newTeamPlayerIds = activeTeamPlayerIds.slice(1)
-          .concat([updatedSession.teamCaptainPlayerId!])
-          .concat(inactiveTeamPlayerIds);
+        // Rebuild the team list preserving sitting out players in original positions
+        newTeamPlayerIds = rebuildTeamListSimple(
+          activeTeamPlayerIds.slice(1), // remaining active team players
+          [updatedSession.teamCaptainPlayerId!], // old captain goes to team
+          sittingOutPositions
+        );
       }
     } else if (teamCaptainScore > 0) {
+      // Team won - Team Captain becomes Box, first active team member becomes Captain
       if (activeTeamPlayerIds.length > 0) {
         newBoxPlayerId = updatedSession.teamCaptainPlayerId!;
-        newTeamCaptainPlayerId = activeTeamPlayerIds[0];
         
-        newTeamPlayerIds = activeTeamPlayerIds.slice(1)
-          .concat([updatedSession.boxPlayerId!])
-          .concat(inactiveTeamPlayerIds);
+        const newTeamCaptainId = activeTeamPlayerIds[0];
+        newTeamCaptainPlayerId = newTeamCaptainId;
+        
+        // Rebuild the team list preserving sitting out players in original positions
+        newTeamPlayerIds = rebuildTeamListSimple(
+          activeTeamPlayerIds.slice(1), // remaining active team players after captain
+          [updatedSession.boxPlayerId!], // old box goes to team
+          sittingOutPositions
+        );
       }
+    }
+
+    // Helper function that rebuilds team list while preserving sitting out players in original positions
+    function rebuildTeamListSimple(
+      remainingActivePlayers: string[],
+      newActivePlayersToAdd: string[],
+      sittingOutPositions: Map<string, number>
+    ): string[] {
+      const originalLength = updatedSession.teamPlayerIds.length;
+      const result: string[] = [];
+      
+      // Build the active player queue: remaining + new additions
+      const activePlayerQueue = [...remainingActivePlayers, ...newActivePlayersToAdd];
+      let activeIndex = 0;
+      
+      // Go through each original position and either place sitting out player or next active player
+      for (let position = 0; position < originalLength; position++) {
+        // Check if this position has a sitting out player
+        const sittingOutPlayerId = Array.from(sittingOutPositions.entries()).find(([, pos]) => pos === position)?.[0];
+        
+        if (sittingOutPlayerId) {
+          // Keep the sitting out player in their original position
+          result[position] = sittingOutPlayerId;
+        } else if (activeIndex < activePlayerQueue.length) {
+          // Fill with next active player
+          result[position] = activePlayerQueue[activeIndex];
+          activeIndex++;
+        }
+      }
+      
+      // Add any remaining active players to the end
+      while (activeIndex < activePlayerQueue.length) {
+        result.push(activePlayerQueue[activeIndex]);
+        activeIndex++;
+      }
+      
+      return result.filter(id => id);
     }
 
     const finalSession = sessionService.updatePlayerPositions(
@@ -146,15 +223,6 @@ function App() {
     refreshPlayers();
   };
 
-  const toggleSittingOut = (playerType: 'box' | 'teamCaptain') => {
-    if (!session) return;
-
-    const playerId = playerType === 'box' ? session.boxPlayerId : session.teamCaptainPlayerId;
-    if (!playerId) return;
-
-    const updatedSession = sessionService.toggleSittingOut(session, playerId);
-    setSession(updatedSession);
-  };
 
   const handleBoxPlayerSelect = (playerId: string) => {
     if (!session) return;
@@ -262,7 +330,7 @@ function App() {
                   className="h-full" 
                   gameMode={session.gameMode}
                   player={getPlayerForDisplay(session.boxPlayerId)}
-                  onToggleSittingOut={() => toggleSittingOut('box')}
+                  onToggleSittingOut={undefined}
                 />
               )}
             </div>
@@ -292,7 +360,7 @@ function App() {
                   className="h-full" 
                   gameMode={session.gameMode}
                   player={getPlayerForDisplay(session.teamCaptainPlayerId)}
-                  onToggleSittingOut={() => toggleSittingOut('teamCaptain')}
+                  onToggleSittingOut={undefined}
                 />
               )}
             </div>
@@ -336,7 +404,8 @@ function App() {
           <MenuComponent 
             onEndChouette={handleEndChouette} 
             onAddGame={handleGameComplete}
-            onExpandedChange={setIsSidebarExpanded}
+            onExpandedChange={handleMenuExpandedChange}
+            isExpanded={isMenuExpanded}
           />
         )}
 
