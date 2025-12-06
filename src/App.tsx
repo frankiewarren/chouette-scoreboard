@@ -288,10 +288,9 @@ function App() {
                   </div>
                 </div>
               ) : (
-                <TeamCaptainSection 
-                  className="h-full" 
-                  gameMode={session.gameMode}
-                  player={getPlayerForDisplay(session.teamCaptainPlayerId)}
+                <TeamCaptainSection
+                  className="h-full"
+                  player={getPlayerForDisplay(session.teamCaptainPlayerId)!}
                   onToggleSittingOut={() => toggleSittingOut('teamCaptain')}
                 />
               )}
