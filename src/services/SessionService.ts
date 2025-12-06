@@ -97,6 +97,75 @@ class SessionService {
     return updatedSession;
   }
 
+  /**
+   * Rotates players according to chouette rules after a round:
+   * - Box wins: Box stays, Captain moves to back of team, next active team player becomes Captain
+   * - Captain wins: Captain becomes Box, old Box moves to back of team, next active team player becomes Captain
+   * - No winner: No rotation occurs
+   *
+   * Sitting out players are skipped for promotion but remain in the team queue.
+   *
+   * @param session - Current game session (should already have updated scores)
+   * @param roundScores - Scores from this round keyed by playerId
+   * @returns Updated session with new positions
+   */
+  rotateAfterRound(session: GameSession, roundScores: { [playerId: string]: number }): GameSession {
+    // Guard clause - need box and captain to rotate
+    if (!session.boxPlayerId || !session.teamCaptainPlayerId) {
+      return session;
+    }
+
+    const boxScore = roundScores[session.boxPlayerId] ?? 0;
+    const captainScore = roundScores[session.teamCaptainPlayerId] ?? 0;
+
+    const winner = this.determineWinner(boxScore, captainScore);
+
+    // No winner means no rotation
+    if (winner === 'none') {
+      return session;
+    }
+
+    // Separate active and sitting-out team players
+    const activeTeamPlayerIds = session.teamPlayerIds.filter(
+      playerId => !session.playersSittingOut[playerId]
+    );
+    const inactiveTeamPlayerIds = session.teamPlayerIds.filter(
+      playerId => session.playersSittingOut[playerId]
+    );
+
+    // Can't rotate if no active team players to promote
+    if (activeTeamPlayerIds.length === 0) {
+      return session;
+    }
+
+    let newBoxPlayerId: string;
+    let newCaptainPlayerId: string;
+    let newTeamPlayerIds: string[];
+
+    if (winner === 'box') {
+      // Box stays, captain goes to back, first active team player becomes captain
+      newBoxPlayerId = session.boxPlayerId;
+      newCaptainPlayerId = activeTeamPlayerIds[0];
+      newTeamPlayerIds = [
+        ...activeTeamPlayerIds.slice(1),
+        session.teamCaptainPlayerId,
+        ...inactiveTeamPlayerIds
+      ];
+    } else {
+      // Captain becomes box, old box goes to back, first active team player becomes captain
+      newBoxPlayerId = session.teamCaptainPlayerId;
+      newCaptainPlayerId = activeTeamPlayerIds[0];
+      newTeamPlayerIds = [
+        ...activeTeamPlayerIds.slice(1),
+        session.boxPlayerId,
+        ...inactiveTeamPlayerIds
+      ];
+    }
+
+    // Use existing method to update positions and save
+    return this.updatePlayerPositions(session, newBoxPlayerId, newCaptainPlayerId, newTeamPlayerIds);
+  }
+
   toggleSittingOut(session: GameSession, playerId: string): GameSession {
     const updatedSession: GameSession = {
       ...session,
