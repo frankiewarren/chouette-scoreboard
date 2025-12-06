@@ -27,10 +27,3 @@ export interface TeamPlayerData {
   playerId: string;
   sittingOut: boolean;
 }
-
-// Keep legacy interface for compatibility during transition
-export interface QueuePlayerData {
-  id: number;
-  playerId: string;
-  sittingOut: boolean;
-}
