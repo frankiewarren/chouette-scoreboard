@@ -4,7 +4,7 @@ class SessionService {
   private static readonly STORAGE_KEY = 'chouette_session';
 
   generateId(): string {
-    return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    return crypto.randomUUID();
   }
 
   getCurrentSession(): GameSession | null {

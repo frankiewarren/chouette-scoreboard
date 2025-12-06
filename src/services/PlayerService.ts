@@ -4,7 +4,7 @@ class PlayerService {
   private static readonly STORAGE_KEY = 'chouette_players';
 
   generateId(): string {
-    return 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    return crypto.randomUUID();
   }
 
   getAllPlayers(): Player[] {
