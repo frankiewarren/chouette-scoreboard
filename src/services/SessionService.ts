@@ -126,6 +126,18 @@ class SessionService {
     }
   }
 
+  /**
+   * Determines the winner of a round based on chouette rules.
+   * - Box wins if box has a positive score (takes precedence)
+   * - Captain/Team wins if captain has a positive score and box doesn't
+   * - No winner if neither has a positive score
+   */
+  private determineWinner(boxScore: number, captainScore: number): 'box' | 'captain' | 'none' {
+    if (boxScore > 0) return 'box';
+    if (captainScore > 0) return 'captain';
+    return 'none';
+  }
+
   private saveSession(session: GameSession): void {
     try {
       localStorage.setItem(SessionService.STORAGE_KEY, JSON.stringify(session));
